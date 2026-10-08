@@ -97,19 +97,47 @@ def evaluar_fitness(cromosoma, env, render=False):
         
     return recompensa_total
 
+
+# ... (aquí arriba está tu clase RedNeuronalCartPole y evaluar_fitness) ...
+
+def cruce_un_punto(padre1, padre2):
+    """
+    Realiza un cruce de un punto entre dos vectores (cromosomas) del mismo tamaño.
+    Elige un índice aleatorio y combina las secciones de ambos padres.
+    """
+    punto_corte = np.random.randint(1, len(padre1))
+    hijo1 = np.concatenate([padre1[:punto_corte], padre2[punto_corte:]])
+    hijo2 = np.concatenate([padre2[:punto_corte], padre1[punto_corte:]])
+    return hijo1, hijo2
+
+def mutacion_gaussiana(cromosoma, prob_mutacion=0.1, media=0.0, desviacion=0.1):
+    """
+    Añade ruido gaussiano a cada elemento del vector con una probabilidad dada.
+    """
+    cromosoma_mutado = np.copy(cromosoma)
+    probabilidades = np.random.rand(len(cromosoma_mutado))
+    mutar_mask = probabilidades < prob_mutacion
+    ruido = np.random.normal(media, desviacion, size=np.sum(mutar_mask))
+    cromosoma_mutado[mutar_mask] += ruido
+    return cromosoma_mutado
+
 # --- Prueba rápida de funcionamiento ---
 if __name__ == "__main__":
-    # Creamos el entorno
     entorno = gym.make("CartPole-v1")
     
-    # Creamos una red aleatoria y sacamos su cromosoma (su ADN)
-    red_prueba = RedNeuronalCartPole()
-    adn_aleatorio = red_prueba.get_pesos_como_cromosoma()
+    # Creamos dos redes "padre"
+    red1 = RedNeuronalCartPole()
+    red2 = RedNeuronalCartPole()
     
-    print(f"Tamaño del cromosoma (total de pesos): {len(adn_aleatorio)}")
+    adn_padre1 = red1.get_pesos_como_cromosoma()
+    adn_padre2 = red2.get_pesos_como_cromosoma()
     
-    # Evaluamos qué tan buena es esta red aleatoria
-    puntuacion = evaluar_fitness(adn_aleatorio, entorno)
-    print(f"Fitness de la red aleatoria: {puntuacion} puntos")
+    # Probamos el cruce y la mutación
+    adn_hijo1, adn_hijo2 = cruce_un_punto(adn_padre1, adn_padre2)
+    adn_hijo1_mutado = mutacion_gaussiana(adn_hijo1)
+    
+    print(f"Tamaño padre: {len(adn_padre1)}")
+    print(f"Tamaño hijo mutado: {len(adn_hijo1_mutado)}")
+    print("¡Cruce y mutación ejecutados correctamente!")
     
     entorno.close()
