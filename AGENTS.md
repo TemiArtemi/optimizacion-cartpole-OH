@@ -98,6 +98,18 @@ El agente tiene **prohibido** generar múltiples archivos o grandes bloques de c
 3. **Explicación Teórica y Técnica Completa:** Cada vez que el agente entregue código, debe explicar detalladamente en el chat (en español) la formulación matemática aplicada, el porqué de las decisiones de diseño (SOLID/Clean Code) y cómo verificar que funciona.
 4. **Plan de Desarrollo por Fases**
 
+### 5.1 Fichero de Plan (`PLAN.md`)
+
+El repositorio mantiene en su raíz un fichero vivo llamado **`PLAN.md`**, que es la **fuente única de verdad** del estado del proyecto: qué está hecho, qué queda por hacer y cuál es la tarea inmediata. Cualquier agente que vaya a trabajar en el proyecto debe leerlo antes de empezar y seguirlo.
+
+Reglas de uso:
+
+- **Lectura obligatoria al inicio de cada sesión de trabajo:** el punto de partida es siempre la sección *Tarea inmediata* de `PLAN.md`.
+- **Actualización al cerrar cada subtarea:** cuando se termina y valida un paso (y se indica el comando `git add`/`git commit` correspondiente), el agente debe pasar la tarea a *Hecho*, marcar la siguiente como *Tarea inmediata* y actualizar la fecha de *Última actualización*. También se actualiza si el usuario acuerda un cambio de plan.
+- **Extensión limitada:** el fichero debe mantenerse por debajo de ~100 líneas para que sea cómodo de leer. Nunca debe convertirse en un diario ni en un documento técnico: si una fase cerrada ocupa demasiado, se resume en una o dos líneas y los detalles se trasladan a la memoria o se documentan en el chat.
+- **Contenido:** solo estado y próximos pasos (diagnóstico, tareas, decisiones de alto nivel). No lleva explicaciones matemáticas, ni código, ni resultados de experimentos.
+- **Idioma:** se redacta en español, al ser documentación externa (regla 2.2).
+
 ---
 
 ## 6. Política de Control de Versiones (Git)
