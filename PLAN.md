@@ -16,7 +16,7 @@ Fichero vivo y breve: refleja **qué está hecho** y **qué toca a continuación
 ### Hecho
 
 - [x] Repositorio inicial: `enunciado.md`, `AGENTS.md`, `requirements.txt`, `.gitignore`.
-- [x] Prototipo en `red_base.py`: red NumPy 4→8→2, evaluación en CartPole, cruce de un punto y mutación gaussiana. **Se reescribe entero en la Fase 0** (incumple `AGENTS.md`: código en español, comentarios en línea, todo mezclado en un único fichero).
+- [x] Fase 0 (2026-10-27): `red_base.py` migrado a `src/` (red, operadores y evaluación en módulos separados, en inglés, sin comentarios, con type hints), fitness multi-episodio con semilla y `render_mode` corregido. Verificado con `python -m tests.smoke_test`.
 
 ### Decisiones de diseño (provisionales, confirmar con el equipo)
 
@@ -26,19 +26,19 @@ Fichero vivo y breve: refleja **qué está hecho** y **qué toca a continuación
 
 ### Tarea inmediata
 
-- **Fase 0:** reescribir `red_base.py` siguiendo la estructura modular y las reglas de `AGENTS.md`.
+- **Fase 1:** crear `src/genetic/selection.py` (torneo y ruleta) y `src/genetic/engine.py` (población, elitismo, bucle evolutivo).
 
 ---
 
 ## 2. Plan por fases
 
-### Fase 0 — Estructura e higiene del código
+### Fase 0 — Estructura e higiene del código ✅
 
-- [ ] Migrar `red_base.py` → `src/networks/numpy_mlp.py`, `src/genetic/operators.py`, `src/environments/cartpole_eval.py`.
-- [ ] Código en inglés, cero comentarios `#`, docstrings de una línea, type hints.
-- [ ] Fitness multi-episodio con semilla; corregir el uso de `render_mode` en Gymnasium.
-- [ ] Actualizar `requirements.txt`, `.gitignore` y README esqueleto.
-- [ ] Verificación: prueba de red + cruce/mutación + un episodio de CartPole.
+- [x] Migrado a `src/networks/numpy_mlp.py`, `src/genetic/operators.py`, `src/environments/cartpole_eval.py`.
+- [x] Código en inglés, cero comentarios `#`, docstrings de una línea, type hints.
+- [x] Fitness multi-episodio con semilla; `render_mode` corregido en Gymnasium.
+- [x] `requirements.txt` con versiones fijadas, `.gitignore` ampliado, README esqueleto.
+- [x] Verificación: `python -m tests.smoke_test` en verde.
 
 ### Fase 1 — Motor genético desde cero
 
