@@ -27,7 +27,7 @@ Fichero vivo y breve: refleja **qué está hecho** y **qué toca a continuación
 
 ### Tarea inmediata
 
-- **Fase 2:** comparación de operadores: implementar cruce uniforme y BLX-α en `src/genetic/operators.py`, y el experimento `experiments/operator_comparison.py` (torneo vs ruleta; un punto vs uniforme vs BLX-α).
+- **Fase 2:** baseline **REINFORCE** en NumPy puro (nuevo módulo en `src/`) y comparación con el AG con el mismo presupuesto de episodios (9000 episodios por método).
 
 ---
 
@@ -51,7 +51,7 @@ Fichero vivo y breve: refleja **qué está hecho** y **qué toca a continuación
 
 - [x] Evaluación paralela (`concurrent.futures`) con semillas preasignadas y *speedup* medido en `experiments/parallel_speedup.py` (figura y log en `results/`).
 - [x] Experimentos con múltiples semillas: media, desviación típica, curvas de convergencia (utilidades en `src/utils/` y validación en `experiments/phase1_check.py`).
-- [ ] Comparación de operadores: torneo vs ruleta; cruce un punto vs uniforme vs BLX-α; mutación gaussiana.
+- [x] Comparación de operadores: torneo vs ruleta; cruce un punto vs uniforme vs BLX-α; mutación gaussiana (`experiments/operator_comparison.py`, 5 semillas por configuración).
 - [ ] Baseline REINFORCE en NumPy frente al AG (misma red, mismo presupuesto de episodios).
 - [ ] Scripts en `experiments/`, figuras en `results/figures/`, logs en `results/logs/`.
 
