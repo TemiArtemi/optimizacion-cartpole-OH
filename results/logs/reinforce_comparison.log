@@ -1,0 +1,23 @@
+architecture=(4, 16, 16, 2)
+episode_budget=9000
+run_seeds=[0, 1, 2, 3, 4]
+reinforce_learning_rate=0.001
+reinforce_batch_size=10
+genetic.seed=0.fitness=500.00
+genetic.seed=1.fitness=500.00
+genetic.seed=2.fitness=500.00
+genetic.seed=3.fitness=500.00
+genetic.seed=4.fitness=500.00
+random.seed=0.fitness=500.00
+random.seed=1.fitness=500.00
+random.seed=2.fitness=500.00
+random.seed=3.fitness=500.00
+random.seed=4.fitness=500.00
+reinforce.seed=0.best=483.00
+reinforce.seed=1.best=500.00
+reinforce.seed=2.best=338.00
+reinforce.seed=3.best=500.00
+reinforce.seed=4.best=500.00
+genetic.mean=500.00.std=0.00.solved=1.00.target_mean=1261.00.target_std=952.23
+random.mean=500.00.std=0.00.solved=1.00.target_mean=2791.00.target_std=2198.41
+reinforce.mean=464.20.std=70.93.solved=0.60.target_mean=3932.67.target_std=1511.20
