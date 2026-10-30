@@ -18,6 +18,7 @@ Fichero vivo y breve: refleja **qué está hecho** y **qué toca a continuación
 - [x] Repositorio inicial: `enunciado.md`, `AGENTS.md`, `requirements.txt`, `.gitignore`.
 - [x] Fase 0 (2026-10-27): `red_base.py` migrado a `src/` (red, operadores y evaluación en módulos separados, en inglés, sin comentarios, con type hints), fitness multi-episodio con semilla y `render_mode` corregido. Verificado con `python -m tests.smoke_test`.
 - [x] Fase 1 (2026-10-30): motor genético desde cero (selección, elitismo, presupuesto de evaluaciones), línea base de búsqueda aleatoria, 9 tests y verificación en CartPole.
+- [x] Fase 2 (2026-10-30): evaluación paralela con *speedup* medido, utilidades de métricas y figuras, comparación de operadores y baseline REINFORCE con comparación de tres métodos bajo igual presupuesto de episodios.
 
 ### Decisiones de diseño (provisionales, confirmar con el equipo)
 
@@ -27,7 +28,7 @@ Fichero vivo y breve: refleja **qué está hecho** y **qué toca a continuación
 
 ### Tarea inmediata
 
-- **Fase 2:** baseline **REINFORCE** en NumPy puro (nuevo módulo en `src/`) y comparación con el AG con el mismo presupuesto de episodios (9000 episodios por método).
+- **Fase 3:** elegir el dataset tabular del UCI y documentar origen y licencia; después `src/networks/torch_mlp.py`.
 
 ---
 
@@ -47,13 +48,13 @@ Fichero vivo y breve: refleja **qué está hecho** y **qué toca a continuación
 - [x] 9 tests (`python3 -m tests.phase1_test`) y verificación en CartPole (`experiments/phase1_check.py`, figura en `results/figures/`).
 - Decisión: la verificación usa una red 4-16-16-2 y fitness robusto (condiciones iniciales nuevas en cada evaluación, sembradas por ejecución); con la red pequeña (4, 8, 2) la búsqueda aleatoria satura el entorno y la comparación no es informativa.
 
-### Fase 2 — Experimentación rigurosa en CartPole
+### Fase 2 — Experimentación rigurosa en CartPole ✅
 
 - [x] Evaluación paralela (`concurrent.futures`) con semillas preasignadas y *speedup* medido en `experiments/parallel_speedup.py` (figura y log en `results/`).
 - [x] Experimentos con múltiples semillas: media, desviación típica, curvas de convergencia (utilidades en `src/utils/` y validación en `experiments/phase1_check.py`).
 - [x] Comparación de operadores: torneo vs ruleta; cruce un punto vs uniforme vs BLX-α; mutación gaussiana (`experiments/operator_comparison.py`, 5 semillas por configuración).
-- [ ] Baseline REINFORCE en NumPy frente al AG (misma red, mismo presupuesto de episodios).
-- [ ] Scripts en `experiments/`, figuras en `results/figures/`, logs en `results/logs/`.
+- [x] Baseline REINFORCE en NumPy frente al AG (misma red, mismo presupuesto de 9000 episodios) en `experiments/reinforce_comparison.py`.
+- [x] Scripts en `experiments/`, figuras en `results/figures/`, logs en `results/logs/` (convención establecida y aplicada).
 
 ### Fase 3 — Vertiente UCI con gradiente
 
