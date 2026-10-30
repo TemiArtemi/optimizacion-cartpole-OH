@@ -35,18 +35,24 @@ class EvolutionResult:
 
 
 def run_genetic_algorithm(
-    fitness_fn: FitnessFunction,
+    *,
+    fitness_fn: FitnessFunction | None = None,
     init_fn: InitializerFunction,
     selection_fn: SelectionFunction,
     crossover_fn: CrossoverFunction,
     mutation_fn: MutationFunction,
     population_size: int,
     max_evaluations: int,
+    population_fitness_fn: Callable[[NDArray[np.float64]], NDArray[np.float64]] | None = None,
     crossover_rate: float = 0.9,
     elite_size: int = 2,
     seed: int | None = None,
 ) -> EvolutionResult:
     """Evolves a population under a fixed evaluation budget and returns the best solution."""
+    if fitness_fn is None and population_fitness_fn is None:
+        raise ValueError("Either fitness_fn or population_fitness_fn must be provided.")
+    if fitness_fn is not None and population_fitness_fn is not None:
+        raise ValueError("Provide only one scoring function, not both.")
     if population_size < 2:
         raise ValueError("Population size must be at least 2.")
     if max_evaluations < population_size:
@@ -62,7 +68,10 @@ def run_genetic_algorithm(
     best_chromosome = population[0].copy()
     best_fitness = -float(np.inf)
     for generation in range(generations):
-        fitnesses = np.array([fitness_fn(individual) for individual in population], dtype=np.float64)
+        if fitness_fn is not None:
+            fitnesses = np.array([fitness_fn(individual) for individual in population], dtype=np.float64)
+        else:
+            fitnesses = np.asarray(population_fitness_fn(population), dtype=np.float64)
         order = np.argsort(fitnesses)[::-1]
         if float(fitnesses[order[0]]) > best_fitness:
             best_fitness = float(fitnesses[order[0]])
