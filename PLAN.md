@@ -2,7 +2,7 @@
 
 Fichero vivo y breve: refleja **qué está hecho** y **qué toca a continuación**. Se actualiza al cerrar cada subtarea. Los detalles técnicos no van aquí, sino en el chat y en la memoria.
 
-**Última actualización:** 2026-10-27
+**Última actualización:** 2026-10-30
 
 ---
 
@@ -17,6 +17,7 @@ Fichero vivo y breve: refleja **qué está hecho** y **qué toca a continuación
 
 - [x] Repositorio inicial: `enunciado.md`, `AGENTS.md`, `requirements.txt`, `.gitignore`.
 - [x] Fase 0 (2026-10-27): `red_base.py` migrado a `src/` (red, operadores y evaluación en módulos separados, en inglés, sin comentarios, con type hints), fitness multi-episodio con semilla y `render_mode` corregido. Verificado con `python -m tests.smoke_test`.
+- [x] Fase 1 (2026-10-30): motor genético desde cero (selección, elitismo, presupuesto de evaluaciones), línea base de búsqueda aleatoria, 9 tests y verificación en CartPole.
 
 ### Decisiones de diseño (provisionales, confirmar con el equipo)
 
@@ -26,7 +27,7 @@ Fichero vivo y breve: refleja **qué está hecho** y **qué toca a continuación
 
 ### Tarea inmediata
 
-- **Fase 1:** crear `src/genetic/selection.py` (torneo y ruleta) y `src/genetic/engine.py` (población, elitismo, bucle evolutivo).
+- **Fase 2:** evaluación paralela de la población (`multiprocessing`/`concurrent.futures`) y medición del *speedup*.
 
 ---
 
@@ -40,12 +41,11 @@ Fichero vivo y breve: refleja **qué está hecho** y **qué toca a continuación
 - [x] `requirements.txt` con versiones fijadas, `.gitignore` ampliado, README esqueleto.
 - [x] Verificación: `python -m tests.smoke_test` en verde.
 
-### Fase 1 — Motor genético desde cero
+### Fase 1 — Motor genético desde cero ✅
 
-- [ ] `src/genetic/selection.py`: selección por torneo y por ruleta.
-- [ ] `src/genetic/engine.py`: población, elitismo, condición de parada e historia de convergencia, desacoplado del dominio (solo recibe una función fitness).
-- [ ] Línea base: búsqueda aleatoria con el mismo presupuesto de evaluaciones.
-- [ ] Verificación: el AG supera claramente al azar en curvas de convergencia.
+- [x] `src/genetic/selection.py` (torneo y ruleta), `src/genetic/engine.py` (elitismo, presupuesto de evaluaciones, historia de convergencia) y `src/genetic/random_search.py`.
+- [x] 9 tests (`python3 -m tests.phase1_test`) y verificación en CartPole (`experiments/phase1_check.py`, figura en `results/figures/`).
+- Decisión: la verificación usa una red 4-16-16-2 y fitness robusto (condiciones iniciales nuevas en cada evaluación, sembradas por ejecución); con la red pequeña (4, 8, 2) la búsqueda aleatoria satura el entorno y la comparación no es informativa.
 
 ### Fase 2 — Experimentación rigurosa en CartPole
 
