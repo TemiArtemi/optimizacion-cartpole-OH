@@ -160,6 +160,23 @@ def test_genetic_algorithm_beats_random_search_under_same_budget() -> None:
     assert ga.best_fitness > 10.0 * random_baseline.best_fitness
 
 
+def test_result_curves_expose_history_as_arrays() -> None:
+    """Checks that the result properties mirror the recorded generation history."""
+    result = run_genetic_algorithm(
+        fitness_fn=sphere_fitness,
+        init_fn=sphere_init,
+        selection_fn=tournament_selection,
+        crossover_fn=one_point_crossover,
+        mutation_fn=sphere_mutation(),
+        population_size=30,
+        max_evaluations=150,
+        seed=3,
+    )
+    assert result.best_curve.shape == (len(result.history),)
+    assert np.array_equal(result.evaluations_curve, [entry.evaluations for entry in result.history])
+    assert np.all(np.diff(result.evaluations_curve) > 0)
+
+
 def main() -> None:
     """Runs every phase 1 test and reports the result."""
     test_tournament_returns_fittest_when_sampling_whole_field()
@@ -170,6 +187,7 @@ def main() -> None:
     test_engine_is_reproducible_for_a_fixed_seed()
     test_engine_rejects_invalid_configuration()
     test_random_search_respects_budget()
+    test_result_curves_expose_history_as_arrays()
     test_genetic_algorithm_beats_random_search_under_same_budget()
     print("All phase 1 tests passed.")
 

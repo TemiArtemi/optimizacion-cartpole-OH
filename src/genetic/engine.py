@@ -33,6 +33,16 @@ class EvolutionResult:
     best_fitness: float
     history: list[GenerationStats]
 
+    @property
+    def best_curve(self) -> NDArray[np.float64]:
+        """Returns the best-so-far fitness recorded for every generation."""
+        return np.array([entry.best_so_far for entry in self.history], dtype=np.float64)
+
+    @property
+    def evaluations_curve(self) -> NDArray[np.int64]:
+        """Returns the accumulated evaluations recorded for every generation."""
+        return np.array([entry.evaluations for entry in self.history], dtype=np.int64)
+
 
 def run_genetic_algorithm(
     *,
