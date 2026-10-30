@@ -1,0 +1,29 @@
+architecture=(4, 16, 16, 2)
+population_size=50
+max_evaluations=3000
+run_seeds=[0, 1, 2, 3, 4]
+workers=8
+tournament_one_point.seed=0.fitness=500.00.target=300
+tournament_one_point.seed=1.fitness=500.00.target=450
+tournament_one_point.seed=2.fitness=500.00.target=850
+tournament_one_point.seed=3.fitness=500.00.target=50
+tournament_one_point.seed=4.fitness=500.00.target=700
+tournament_one_point.mean=500.00.std=0.00.solved=1.00.target_mean=470.0.target_std=317.41140496207754
+roulette_one_point.seed=0.fitness=500.00.target=100
+roulette_one_point.seed=1.fitness=500.00.target=150
+roulette_one_point.seed=2.fitness=500.00.target=600
+roulette_one_point.seed=3.fitness=500.00.target=50
+roulette_one_point.seed=4.fitness=500.00.target=200
+roulette_one_point.mean=500.00.std=0.00.solved=1.00.target_mean=220.0.target_std=219.65882636488797
+tournament_uniform.seed=0.fitness=500.00.target=300
+tournament_uniform.seed=1.fitness=500.00.target=150
+tournament_uniform.seed=2.fitness=500.00.target=800
+tournament_uniform.seed=3.fitness=500.00.target=50
+tournament_uniform.seed=4.fitness=500.00.target=1450
+tournament_uniform.mean=500.00.std=0.00.solved=1.00.target_mean=550.0.target_std=579.8706752371601
+tournament_blx_alpha.seed=0.fitness=500.00.target=300
+tournament_blx_alpha.seed=1.fitness=500.00.target=150
+tournament_blx_alpha.seed=2.fitness=500.00.target=250
+tournament_blx_alpha.seed=3.fitness=500.00.target=50
+tournament_blx_alpha.seed=4.fitness=500.00.target=800
+tournament_blx_alpha.mean=500.00.std=0.00.solved=1.00.target_mean=310.0.target_std=290.25850547399983
