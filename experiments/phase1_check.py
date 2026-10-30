@@ -8,15 +8,16 @@ import numpy as np
 
 matplotlib.use("Agg")
 
-from src.environments.cartpole_eval import CARTPOLE_ARCHITECTURE, evaluate_chromosome
+from src.environments.cartpole_eval import evaluate_chromosome
 from src.genetic.engine import EvolutionResult, run_genetic_algorithm
 from src.genetic.operators import gaussian_mutation, one_point_crossover
 from src.genetic.random_search import run_random_search
 from src.genetic.selection import tournament_selection
 from src.networks.numpy_mlp import random_chromosome
 
+EXPERIMENT_ARCHITECTURE: tuple[int, ...] = (4, 16, 16, 2)
 POPULATION_SIZE = 50
-MAX_EVALUATIONS = 1000
+MAX_EVALUATIONS = 3000
 EPISODES_PER_EVALUATION = 3
 TARGET_FITNESS = 500.0
 SEED_OFFSET = 10_000
@@ -25,8 +26,8 @@ FIGURE_PATH = Path(__file__).resolve().parents[1] / "results" / "figures" / "pha
 
 
 def init_chromosome(rng: np.random.Generator) -> np.ndarray:
-    """Samples one random network chromosome for the CartPole architecture."""
-    return random_chromosome(CARTPOLE_ARCHITECTURE, rng)
+    """Samples one random network chromosome for the experiment architecture."""
+    return random_chromosome(EXPERIMENT_ARCHITECTURE, rng)
 
 
 def make_fitness(run_seed: int) -> object:
@@ -36,7 +37,12 @@ def make_fitness(run_seed: int) -> object:
     def fitness(chromosome: np.ndarray) -> float:
         """Evaluates one chromosome on CartPole with newly drawn initial conditions."""
         seed = int(evaluation_rng.integers(1_000_000))
-        return evaluate_chromosome(chromosome, episodes=EPISODES_PER_EVALUATION, seed=seed)
+        return evaluate_chromosome(
+            chromosome,
+            architecture=EXPERIMENT_ARCHITECTURE,
+            episodes=EPISODES_PER_EVALUATION,
+            seed=seed,
+        )
 
     return fitness
 
@@ -96,7 +102,7 @@ def plot_convergence(genetic_curves: np.ndarray, random_curves: np.ndarray) -> N
         axis.fill_between(evaluations, mean_curve - std_curve, mean_curve + std_curve, color=color, alpha=0.2)
     axis.set_xlabel("Número de evaluaciones")
     axis.set_ylabel("Recompensa media (mejor hasta la fecha)")
-    axis.set_title("CartPole-v1: algoritmo genético frente a búsqueda aleatoria (fitness robusto)")
+    axis.set_title("CartPole-v1 (red 4-16-16-2): algoritmo genético frente a búsqueda aleatoria")
     axis.legend()
     axis.grid(alpha=0.3)
     figure.tight_layout()
