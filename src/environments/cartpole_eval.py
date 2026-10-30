@@ -78,13 +78,30 @@ class CartpoleBatchEvaluator:
         self.architecture = architecture
         self.episodes = episodes
         self.workers = workers
+        self.seed = seed
         self._seed_rng = np.random.default_rng(seed)
         self._executor = ProcessPoolExecutor(max_workers=workers)
 
     def __call__(self, population: NDArray[np.float64]) -> NDArray[np.float64]:
         """Returns one fitness value per row, keeping row order regardless of scheduling."""
         seeds = draw_evaluation_seeds(self._seed_rng, len(population))
-        tasks = [
+        tasks = self._build_tasks(population, seeds)
+        results = self._executor.map(evaluate_task, tasks, chunksize=1)
+        return np.array(list(results), dtype=np.float64)
+
+    def warm_up(self, population: NDArray[np.float64]) -> None:
+        """Runs one untimed batch so worker processes start before measurement."""
+        seeds = draw_evaluation_seeds(np.random.default_rng(self.seed + 1), len(population))
+        tasks = self._build_tasks(population, seeds)
+        list(self._executor.map(evaluate_task, tasks, chunksize=1))
+
+    def _build_tasks(
+        self,
+        population: NDArray[np.float64],
+        seeds: NDArray[np.int64],
+    ) -> list[EvaluationTask]:
+        """Converts chromosomes and their assigned seeds into serializable worker tasks."""
+        return [
             EvaluationTask(
                 chromosome=np.array(chromosome, dtype=np.float64),
                 architecture=self.architecture,
@@ -93,8 +110,6 @@ class CartpoleBatchEvaluator:
             )
             for index, chromosome in enumerate(population)
         ]
-        results = self._executor.map(evaluate_task, tasks, chunksize=1)
-        return np.array(list(results), dtype=np.float64)
 
     def close(self) -> None:
         """Shuts down the worker process pool."""

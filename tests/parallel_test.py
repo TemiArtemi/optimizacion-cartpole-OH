@@ -27,6 +27,22 @@ def init_chromosome(rng: np.random.Generator) -> np.ndarray:
     return random_chromosome(CARTPOLE_ARCHITECTURE, rng)
 
 
+def test_warm_up_does_not_consume_the_run_seed() -> None:
+    """Checks that warming up the pool leaves the timed seed sequence untouched."""
+    population = sample_population(4, 6)
+    seeds = draw_evaluation_seeds(np.random.default_rng(10), 4)
+    serial = np.array(
+        [
+            evaluate_chromosome(chromosome, episodes=1, seed=int(seeds[index]))
+            for index, chromosome in enumerate(population)
+        ]
+    )
+    with CartpoleBatchEvaluator(episodes=1, workers=2, seed=10) as evaluator:
+        evaluator.warm_up(population)
+        scores = evaluator(population)
+    assert np.array_equal(serial, scores)
+
+
 def test_worker_matches_serial_evaluation() -> None:
     """Checks that evaluating a task on a worker equals calling the serial evaluator."""
     chromosome = random_chromosome(CARTPOLE_ARCHITECTURE, np.random.default_rng(0))
@@ -130,6 +146,7 @@ def test_engine_rejects_scorer_configuration() -> None:
 
 def main() -> None:
     """Runs every parallel evaluation test and reports the result."""
+    test_warm_up_does_not_consume_the_run_seed()
     test_worker_matches_serial_evaluation()
     test_batch_matches_serial_with_preassigned_seeds()
     test_batch_is_independent_of_worker_count()
