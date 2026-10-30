@@ -27,7 +27,7 @@ Fichero vivo y breve: refleja **qué está hecho** y **qué toca a continuación
 
 ### Tarea inmediata
 
-- **Fase 2:** evaluación paralela de la población (`multiprocessing`/`concurrent.futures`) y medición del *speedup*.
+- **Fase 2:** crear `src/utils/metrics.py` y `src/utils/plotting.py`, y pasar los experimentos a ejecuciones con múltiples semillas (media, desviación típica, curvas de convergencia).
 
 ---
 
@@ -49,7 +49,7 @@ Fichero vivo y breve: refleja **qué está hecho** y **qué toca a continuación
 
 ### Fase 2 — Experimentación rigurosa en CartPole
 
-- [ ] Evaluación paralela (`multiprocessing`/`concurrent.futures`) y medición de *speedup*.
+- [x] Evaluación paralela (`concurrent.futures`) con semillas preasignadas y *speedup* medido en `experiments/parallel_speedup.py` (figura y log en `results/`).
 - [ ] Experimentos con múltiples semillas: media, desviación típica, curvas de convergencia.
 - [ ] Comparación de operadores: torneo vs ruleta; cruce un punto vs uniforme vs BLX-α; mutación gaussiana.
 - [ ] Baseline REINFORCE en NumPy frente al AG (misma red, mismo presupuesto de episodios).
