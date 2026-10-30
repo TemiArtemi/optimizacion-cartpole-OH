@@ -1,3 +1,4 @@
+from collections.abc import Callable
 from concurrent.futures import ProcessPoolExecutor
 from dataclasses import dataclass
 from types import TracebackType
@@ -9,6 +10,40 @@ from numpy.typing import NDArray
 from src.networks.numpy_mlp import NumpyMLP
 
 CARTPOLE_ARCHITECTURE: tuple[int, int, int] = (4, 8, 2)
+
+
+@dataclass(frozen=True)
+class EpisodeTrace:
+    """States visited, actions taken and rewards received of one played episode."""
+    states: NDArray[np.float64]
+    actions: NDArray[np.int64]
+    rewards: NDArray[np.float64]
+
+
+def play_episode(
+    select_action: Callable[[NDArray[np.float64]], int],
+    seed: int | None = None,
+) -> EpisodeTrace:
+    """Runs one CartPole episode with the given action function and returns its trace."""
+    env = gym.make("CartPole-v1")
+    state, _ = env.reset(seed=seed)
+    states: list[NDArray[np.float64]] = []
+    actions: list[int] = []
+    rewards: list[float] = []
+    done = False
+    while not done:
+        action = int(select_action(state))
+        states.append(np.array(state, dtype=np.float64))
+        actions.append(action)
+        state, reward, terminated, truncated, _ = env.step(action)
+        rewards.append(float(reward))
+        done = terminated or truncated
+    env.close()
+    return EpisodeTrace(
+        states=np.array(states, dtype=np.float64),
+        actions=np.array(actions, dtype=np.int64),
+        rewards=np.array(rewards, dtype=np.float64),
+    )
 
 
 def evaluate_chromosome(
