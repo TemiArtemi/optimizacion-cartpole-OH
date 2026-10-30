@@ -27,7 +27,7 @@ Fichero vivo y breve: refleja **qué está hecho** y **qué toca a continuación
 
 ### Tarea inmediata
 
-- **Fase 2:** crear `src/utils/metrics.py` y `src/utils/plotting.py`, y pasar los experimentos a ejecuciones con múltiples semillas (media, desviación típica, curvas de convergencia).
+- **Fase 2:** comparación de operadores: implementar cruce uniforme y BLX-α en `src/genetic/operators.py`, y el experimento `experiments/operator_comparison.py` (torneo vs ruleta; un punto vs uniforme vs BLX-α).
 
 ---
 
@@ -50,7 +50,7 @@ Fichero vivo y breve: refleja **qué está hecho** y **qué toca a continuación
 ### Fase 2 — Experimentación rigurosa en CartPole
 
 - [x] Evaluación paralela (`concurrent.futures`) con semillas preasignadas y *speedup* medido en `experiments/parallel_speedup.py` (figura y log en `results/`).
-- [ ] Experimentos con múltiples semillas: media, desviación típica, curvas de convergencia.
+- [x] Experimentos con múltiples semillas: media, desviación típica, curvas de convergencia (utilidades en `src/utils/` y validación en `experiments/phase1_check.py`).
 - [ ] Comparación de operadores: torneo vs ruleta; cruce un punto vs uniforme vs BLX-α; mutación gaussiana.
 - [ ] Baseline REINFORCE en NumPy frente al AG (misma red, mismo presupuesto de episodios).
 - [ ] Scripts en `experiments/`, figuras en `results/figures/`, logs en `results/logs/`.
