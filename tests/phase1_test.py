@@ -3,7 +3,12 @@ import functools
 import numpy as np
 
 from src.genetic.engine import run_genetic_algorithm
-from src.genetic.operators import gaussian_mutation, one_point_crossover
+from src.genetic.operators import (
+    blx_alpha_crossover,
+    gaussian_mutation,
+    one_point_crossover,
+    uniform_crossover,
+)
 from src.genetic.random_search import run_random_search
 from src.genetic.selection import roulette_wheel_selection, tournament_selection
 
@@ -177,12 +182,75 @@ def test_result_curves_expose_history_as_arrays() -> None:
     assert np.all(np.diff(result.evaluations_curve) > 0)
 
 
+def test_uniform_crossover_is_pure_and_mixes_genes() -> None:
+    """Checks that uniform crossover mixes genes per position without touching the parents."""
+    rng = np.random.default_rng(6)
+    parent_a = np.arange(12, dtype=np.float64)
+    parent_b = parent_a + 100.0
+    parent_a_copy = parent_a.copy()
+    parent_b_copy = parent_b.copy()
+    child_a, child_b = uniform_crossover(parent_a, parent_b, rng)
+    assert child_a.shape == parent_a.shape
+    assert child_b.shape == parent_b.shape
+    assert np.all((child_a == parent_a) | (child_a == parent_b))
+    assert np.all((child_b == parent_a) | (child_b == parent_b))
+    assert np.any(child_a == parent_a) and np.any(child_a == parent_b)
+    assert np.array_equal(parent_a, parent_a_copy)
+    assert np.array_equal(parent_b, parent_b_copy)
+
+
+def test_uniform_crossover_respects_swap_probability() -> None:
+    """Checks that swap probability zero clones the parents and one fully swaps them."""
+    rng = np.random.default_rng(7)
+    parent_a = np.arange(8, dtype=np.float64)
+    parent_b = parent_a + 10.0
+    kept_a, kept_b = uniform_crossover(parent_a, parent_b, rng, swap_probability=0.0)
+    assert np.array_equal(kept_a, parent_a)
+    assert np.array_equal(kept_b, parent_b)
+    swapped_a, swapped_b = uniform_crossover(parent_a, parent_b, rng, swap_probability=1.0)
+    assert np.array_equal(swapped_a, parent_b)
+    assert np.array_equal(swapped_b, parent_a)
+    try:
+        uniform_crossover(parent_a, parent_b, rng, swap_probability=1.5)
+        raise AssertionError("expected ValueError for swap probability above one")
+    except ValueError:
+        pass
+
+
+def test_blx_alpha_stays_within_widened_bounds() -> None:
+    """Checks that BLX-alpha children stay inside the parents' range widened by alpha."""
+    rng = np.random.default_rng(8)
+    parent_a = rng.normal(0.0, 1.0, size=40)
+    parent_b = rng.normal(0.0, 1.0, size=40)
+    parent_a_copy = parent_a.copy()
+    parent_b_copy = parent_b.copy()
+    child_a, child_b = blx_alpha_crossover(parent_a, parent_b, rng, alpha=0.5)
+    low = np.minimum(parent_a, parent_b)
+    high = np.maximum(parent_a, parent_b)
+    span = (high - low) * 0.5
+    assert child_a.shape == parent_a.shape
+    assert np.all(child_a >= low - span)
+    assert np.all(child_a <= high + span)
+    assert np.all(child_b >= low - span)
+    assert np.all(child_b <= high + span)
+    assert np.array_equal(parent_a, parent_a_copy)
+    assert np.array_equal(parent_b, parent_b_copy)
+    try:
+        blx_alpha_crossover(parent_a, parent_b, rng, alpha=-0.1)
+        raise AssertionError("expected ValueError for negative alpha")
+    except ValueError:
+        pass
+
+
 def main() -> None:
     """Runs every phase 1 test and reports the result."""
     test_tournament_returns_fittest_when_sampling_whole_field()
     test_tournament_rejects_invalid_tournament_size()
     test_roulette_dominates_with_shifted_negative_fitness()
     test_selection_operators_do_not_mutate_inputs()
+    test_uniform_crossover_is_pure_and_mixes_genes()
+    test_uniform_crossover_respects_swap_probability()
+    test_blx_alpha_stays_within_widened_bounds()
     test_engine_respects_budget_and_keeps_best_monotone()
     test_engine_is_reproducible_for_a_fixed_seed()
     test_engine_rejects_invalid_configuration()
