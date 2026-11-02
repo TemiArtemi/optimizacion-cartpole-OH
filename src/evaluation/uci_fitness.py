@@ -7,7 +7,7 @@ import numpy as np
 from numpy.typing import NDArray
 
 from src.genetic.hyperparams_chromosome import decode
-from src.networks.torch_mlp import train_and_evaluate
+from src.networks.torch_mlp import MLPConfig, train_and_evaluate
 from src.uci.dataset import LetterDataset, load_letter_dataset
 from src.uci.preparation import LETTER_CLASSES
 
@@ -22,14 +22,13 @@ class FitnessTask:
     seed: int
 
 
-def evaluate_chromosome(
-    chromosome: NDArray[np.float64],
+def evaluate_config(
+    config: MLPConfig,
     dataset: LetterDataset,
     epochs: int,
     seed: int,
 ) -> float:
-    """Trains the encoded configuration and returns its validation accuracy."""
-    config = decode(chromosome)
+    """Trains the given configuration and returns its validation accuracy."""
     return train_and_evaluate(
         config,
         dataset.train.features,
@@ -40,6 +39,16 @@ def evaluate_chromosome(
         epochs=epochs,
         seed=seed,
     )
+
+
+def evaluate_chromosome(
+    chromosome: NDArray[np.float64],
+    dataset: LetterDataset,
+    epochs: int,
+    seed: int,
+) -> float:
+    """Trains the encoded configuration and returns its validation accuracy."""
+    return evaluate_config(decode(chromosome), dataset, epochs, seed)
 
 
 def draw_evaluation_seeds(rng: np.random.Generator, count: int) -> NDArray[np.int64]:
