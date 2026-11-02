@@ -46,13 +46,13 @@ def train_and_evaluate(
     config: MLPConfig,
     train_features: NDArray[np.float64],
     train_labels: NDArray[np.int64],
-    validation_features: NDArray[np.float64],
-    validation_labels: NDArray[np.int64],
+    evaluation_features: NDArray[np.float64],
+    evaluation_labels: NDArray[np.int64],
     class_count: int,
     epochs: int,
     seed: int,
 ) -> float:
-    """Trains the configured network and returns the validation accuracy using single-threaded math."""
+    """Trains the configured network and returns the evaluation accuracy using single-threaded math."""
     if epochs < 1:
         raise ValueError("Epoch count must be at least 1.")
     if class_count < 2:
@@ -61,8 +61,8 @@ def train_and_evaluate(
     torch.manual_seed(seed)
     train_x = torch.tensor(train_features, dtype=torch.float32)
     train_y = torch.tensor(train_labels, dtype=torch.int64)
-    validation_x = torch.tensor(validation_features, dtype=torch.float32)
-    validation_y = torch.tensor(validation_labels, dtype=torch.int64)
+    evaluation_x = torch.tensor(evaluation_features, dtype=torch.float32)
+    evaluation_y = torch.tensor(evaluation_labels, dtype=torch.int64)
     generator = torch.Generator()
     generator.manual_seed(seed)
     loader = DataLoader(
@@ -87,6 +87,6 @@ def train_and_evaluate(
             optimizer.step()
     model.eval()
     with torch.no_grad():
-        predictions = model(validation_x).argmax(dim=1)
-        accuracy = (predictions == validation_y).float().mean()
+        predictions = model(evaluation_x).argmax(dim=1)
+        accuracy = (predictions == evaluation_y).float().mean()
     return float(accuracy)
