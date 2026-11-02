@@ -86,7 +86,7 @@ Los tests de Fase 3 que dependen del dataset omiten con un mensaje explícito si
 | `python -m experiments.reinforce_comparison` | AG vs aleatoria vs REINFORCE a igual presupuesto de episodios | ~8 min |
 | `python -m experiments.phase3_check` | AG vs aleatoria vs configuración por defecto en Letter Recognition (5 semillas) | ~1 h 45 min |
 
-Cada experimento guarda su figura en `results/figures/` y sus datos en bruto en `results/logs/`, y es determinista por semillas: re-ejecutarlo reproduce exactamente los mismos valores (excepto `parallel_speedup`, cuyo log contiene tiempos de pared dependientes de la máquina).
+Cada experimento guarda su figura en `results/figures/` y sus datos en bruto en `results/logs/`. La reproducibilidad por semillas es estricta **en la misma máquina**: los experimentos puros de NumPy (Fases 1 y 2) reproducen incluso bytes idénticos entre máquinas, mientras que el entrenamiento con PyTorch de la Fase 3 puede variar en el cuarto decimal entre CPUs distintas (los productos matriciales usan rutinas BLAS dependientes del hardware), sin alterar las conclusiones. Las duraciones registradas en los logs son tiempos de pared dependientes de la máquina (`parallel_speedup` es, por naturaleza, un experimento de tiempos).
 
 ## Plan de trabajo
 
