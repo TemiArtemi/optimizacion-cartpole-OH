@@ -2,7 +2,7 @@
 
 Fichero vivo y breve: refleja **qué está hecho** y **qué toca a continuación**. Se actualiza al cerrar cada subtarea. Los detalles técnicos no van aquí, sino en el chat y en la memoria.
 
-**Última actualización:** 2026-10-30
+**Última actualización:** 2026-11-02
 
 ---
 
@@ -19,6 +19,7 @@ Fichero vivo y breve: refleja **qué está hecho** y **qué toca a continuación
 - [x] Fase 0 (2026-10-27): `red_base.py` migrado a `src/` (red, operadores y evaluación en módulos separados, en inglés, sin comentarios, con type hints), fitness multi-episodio con semilla y `render_mode` corregido. Verificado con `python -m tests.smoke_test`.
 - [x] Fase 1 (2026-10-30): motor genético desde cero (selección, elitismo, presupuesto de evaluaciones), línea base de búsqueda aleatoria, 9 tests y verificación en CartPole.
 - [x] Fase 2 (2026-10-30): evaluación paralela con *speedup* medido, utilidades de métricas y figuras, comparación de operadores y baseline REINFORCE con comparación de tres métodos bajo igual presupuesto de episodios.
+- [x] Fase 3 (2026-11-02): dataset UCI *Letter Recognition* documentado, red PyTorch, cromosoma mixto de hiperparámetros, evaluación paralela y experimento de comparación (AG, búsqueda aleatoria y configuración por defecto) verificado con `python -m experiments.phase3_check`.
 
 ### Decisiones de diseño (provisionales, confirmar con el equipo)
 
@@ -28,7 +29,7 @@ Fichero vivo y breve: refleja **qué está hecho** y **qué toca a continuación
 
 ### Tarea inmediata
 
-- **Fase 3:** elegir el dataset tabular del UCI y documentar origen y licencia; después `src/networks/torch_mlp.py`.
+- **Fase 4:** memoria según la estructura del enunciado (incluye apartado de uso de IA), README definitivo y regeneración de tablas y figuras reproducibles.
 
 ---
 
@@ -56,12 +57,12 @@ Fichero vivo y breve: refleja **qué está hecho** y **qué toca a continuación
 - [x] Baseline REINFORCE en NumPy frente al AG (misma red, mismo presupuesto de 9000 episodios) en `experiments/reinforce_comparison.py`.
 - [x] Scripts en `experiments/`, figuras en `results/figures/`, logs en `results/logs/` (convención establecida y aplicada).
 
-### Fase 3 — Vertiente UCI con gradiente
+### Fase 3 — Vertiente UCI con gradiente ✅
 
-- [ ] Elegir dataset tabular del UCI y documentar origen y licencia.
-- [ ] `src/networks/torch_mlp.py` entrenado con PyTorch.
-- [ ] AG sobre arquitectura e hiperparámetros (cromosoma mixto discreto/continuo) como caja negra.
-- [ ] Comparar con búsqueda aleatoria y con una configuración por defecto.
+- [x] Elegir dataset tabular del UCI y documentar origen y licencia (`data/README.md`).
+- [x] `src/networks/torch_mlp.py` entrenado con PyTorch.
+- [x] AG sobre arquitectura e hiperparámetros (cromosoma mixto discreto/continuo) como caja negra.
+- [x] Comparar con búsqueda aleatoria y con una configuración por defecto (`experiments/phase3_check.py`, 5 semillas).
 
 ### Fase 4 — Memoria y entregables
 
