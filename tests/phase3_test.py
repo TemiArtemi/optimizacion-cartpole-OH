@@ -6,6 +6,13 @@ from pathlib import Path
 import numpy as np
 import torch
 
+from src.evaluation.uci_fitness import (
+    FitnessTask,
+    UciBatchEvaluator,
+    draw_evaluation_seeds,
+    evaluate_chromosome,
+    evaluate_task,
+)
 from src.genetic.hyperparams_chromosome import (
     ACTIVATION_GENE,
     CHROMOSOME_LENGTH,
@@ -315,6 +322,47 @@ def test_uniform_crossover_children_stay_decodable() -> None:
     decode(child_b)
 
 
+def test_evaluate_task_requires_worker_initialization() -> None:
+    """Checks that a worker task fails loudly when the dataset has not been loaded."""
+    task = FitnessTask(chromosome=np.zeros(CHROMOSOME_LENGTH, dtype=np.float64), epochs=1, seed=0)
+    try:
+        evaluate_task(task)
+        raise AssertionError("expected RuntimeError for an uninitialized worker")
+    except RuntimeError:
+        pass
+
+
+def test_evaluate_chromosome_is_bounded_and_deterministic() -> None:
+    """Checks that one evaluation returns a bounded accuracy and repeats exactly for the same seed."""
+    if not DATA_DIRECTORY.exists():
+        return
+    dataset = load_letter_dataset(DATA_DIRECTORY)
+    rng = np.random.default_rng(0)
+    chromosome = random_chromosome(rng)
+    first = evaluate_chromosome(chromosome, dataset, epochs=1, seed=3)
+    second = evaluate_chromosome(chromosome, dataset, epochs=1, seed=3)
+    assert first == second
+    assert 0.0 <= first <= 1.0
+
+
+def test_batch_evaluator_preserves_row_order_with_preassigned_seeds() -> None:
+    """Checks that the parallel evaluator matches a serial run that reuses the same seed sequence."""
+    if not DATA_DIRECTORY.exists():
+        return
+    dataset = load_letter_dataset(DATA_DIRECTORY)
+    rng = np.random.default_rng(0)
+    population = np.stack([random_chromosome(rng) for _ in range(3)])
+    seeds = draw_evaluation_seeds(np.random.default_rng(4), len(population))
+    expected = np.array(
+        [evaluate_chromosome(row, dataset, epochs=1, seed=int(seeds[i])) for i, row in enumerate(population)],
+        dtype=np.float64,
+    )
+    with UciBatchEvaluator(DATA_DIRECTORY, epochs=1, workers=2, seed=4) as evaluator:
+        fitnesses = evaluator(population)
+    assert fitnesses.shape == (3,)
+    assert np.array_equal(fitnesses, expected)
+
+
 def main() -> None:
     """Runs every phase 3 test and reports the result."""
     test_read_letter_table_maps_letters_to_indices()
@@ -335,6 +383,9 @@ def main() -> None:
     test_mixed_mutation_is_pure_and_clamps_to_bounds()
     test_mixed_mutation_always_replaces_the_activation_gene()
     test_uniform_crossover_children_stay_decodable()
+    test_evaluate_task_requires_worker_initialization()
+    test_evaluate_chromosome_is_bounded_and_deterministic()
+    test_batch_evaluator_preserves_row_order_with_preassigned_seeds()
     print("All phase 3 tests passed.")
 
 
