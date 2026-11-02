@@ -116,8 +116,8 @@ def run_random(
         warm_up_evaluator(evaluator, workers)
         start = time.perf_counter()
         result = run_random_search(
-            None,
-            init_chromosome,
+            fitness_fn=None,
+            init_fn=init_chromosome,
             population_size=population_size,
             max_evaluations=max_evaluations,
             seed=run_seed,

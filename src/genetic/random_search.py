@@ -1,5 +1,3 @@
-from collections.abc import Callable
-
 import numpy as np
 from numpy.typing import NDArray
 
@@ -8,13 +6,13 @@ from src.genetic.engine import (
     FitnessFunction,
     GenerationStats,
     InitializerFunction,
+    PopulationFitnessFunction,
 )
-
-PopulationFitnessFunction = Callable[[NDArray[np.float64]], NDArray[np.float64]]
 
 
 def run_random_search(
-    fitness_fn: FitnessFunction | None,
+    *,
+    fitness_fn: FitnessFunction | None = None,
     init_fn: InitializerFunction,
     population_size: int,
     max_evaluations: int,

@@ -14,6 +14,7 @@ CrossoverFunction = Callable[
     tuple[NDArray[np.float64], NDArray[np.float64]],
 ]
 MutationFunction = Callable[[NDArray[np.float64], np.random.Generator], NDArray[np.float64]]
+PopulationFitnessFunction = Callable[[NDArray[np.float64]], NDArray[np.float64]]
 
 
 @dataclass(frozen=True)
@@ -53,7 +54,7 @@ def run_genetic_algorithm(
     mutation_fn: MutationFunction,
     population_size: int,
     max_evaluations: int,
-    population_fitness_fn: Callable[[NDArray[np.float64]], NDArray[np.float64]] | None = None,
+    population_fitness_fn: PopulationFitnessFunction | None = None,
     crossover_rate: float = 0.9,
     elite_size: int = 2,
     seed: int | None = None,

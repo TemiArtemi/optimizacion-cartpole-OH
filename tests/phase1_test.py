@@ -142,7 +142,7 @@ def test_engine_rejects_invalid_configuration() -> None:
 
 def test_random_search_respects_budget() -> None:
     """Checks that random search consumes the exact budget in whole batches."""
-    result = run_random_search(sphere_fitness, sphere_init, population_size=25, max_evaluations=100, seed=6)
+    result = run_random_search(fitness_fn=sphere_fitness, init_fn=sphere_init, population_size=25, max_evaluations=100, seed=6)
     assert result.history[-1].evaluations == 100
     assert len(result.history) == 4
     assert result.best_fitness == result.history[-1].best_so_far
@@ -156,20 +156,20 @@ def test_random_search_matches_between_individual_and_population_scoring() -> No
         return np.array([sphere_fitness(row) for row in population], dtype=np.float64)
 
     batched = run_random_search(
-        None,
-        sphere_init,
+        fitness_fn=None,
+        init_fn=sphere_init,
         population_size=25,
         max_evaluations=100,
         seed=6,
         population_fitness_fn=population_fitness,
     )
-    serial = run_random_search(sphere_fitness, sphere_init, population_size=25, max_evaluations=100, seed=6)
+    serial = run_random_search(fitness_fn=sphere_fitness, init_fn=sphere_init, population_size=25, max_evaluations=100, seed=6)
     assert batched.best_fitness == serial.best_fitness
     assert np.array_equal(batched.best_chromosome, serial.best_chromosome)
     try:
         run_random_search(
-            sphere_fitness,
-            sphere_init,
+            fitness_fn=sphere_fitness,
+            init_fn=sphere_init,
             population_size=25,
             max_evaluations=100,
             population_fitness_fn=population_fitness,
@@ -178,7 +178,7 @@ def test_random_search_matches_between_individual_and_population_scoring() -> No
     except ValueError:
         pass
     try:
-        run_random_search(None, sphere_init, population_size=25, max_evaluations=100)
+        run_random_search(fitness_fn=None, init_fn=sphere_init, population_size=25, max_evaluations=100)
         raise AssertionError("expected ValueError when no scoring function is given")
     except ValueError:
         pass
@@ -196,7 +196,7 @@ def test_genetic_algorithm_beats_random_search_under_same_budget() -> None:
         max_evaluations=4000,
         seed=7,
     )
-    random_baseline = run_random_search(sphere_fitness, sphere_init, population_size=40, max_evaluations=4000, seed=7)
+    random_baseline = run_random_search(fitness_fn=sphere_fitness, init_fn=sphere_init, population_size=40, max_evaluations=4000, seed=7)
     assert ga.best_fitness > random_baseline.best_fitness
     assert ga.best_fitness > 10.0 * random_baseline.best_fitness
 
