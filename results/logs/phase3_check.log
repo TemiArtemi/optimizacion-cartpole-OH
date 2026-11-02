@@ -1,0 +1,20 @@
+dataset=letter_recognition
+population_size=20
+max_evaluations=240
+epochs=20
+mutation_rate=0.3
+run_seeds=[0, 1, 2, 3, 4]
+workers=8
+default_config_evaluations=1 per seed
+seed=0.genetic_val=0.9550.random_val=0.9408.default_val=0.8750.genetic_test=0.9467.random_test=0.9380.default_test=0.8845
+seed=1.genetic_val=0.9672.random_val=0.9597.default_val=0.8698.genetic_test=0.9743.random_test=0.9597.default_test=0.8848
+seed=2.genetic_val=0.9628.random_val=0.9435.default_val=0.8733.genetic_test=0.9595.random_test=0.9535.default_test=0.8860
+seed=3.genetic_val=0.9617.random_val=0.9517.default_val=0.8737.genetic_test=0.9630.random_test=0.9563.default_test=0.8913
+seed=4.genetic_val=0.9628.random_val=0.9548.default_val=0.8748.genetic_test=0.9625.random_test=0.9625.default_test=0.8815
+genetic_val.mean=0.9619.std=0.0044
+random_val.mean=0.9501.std=0.0079
+default_val.mean=0.8733.std=0.0021
+genetic_test.mean=0.9612.std=0.0098
+random_test.mean=0.9540.std=0.0096
+default_test.mean=0.8856.std=0.0036
+search_time.genetic_mean=637.9.random_mean=561.7
