@@ -1,3 +1,25 @@
 \section{Datos}
 
-Pendiente: origen, DOI y licencia del dataset Letter Recognition, descripción de los 16 atributos y 26 clases, preprocesado (partición oficial, estandarización ajustada solo sobre entrenamiento) y particiones utilizadas.
+\subsection{Origen y licencia}
+
+El conjunto utilizado es \emph{Letter Recognition} del \emph{UCI Machine Learning Repository} \citep{frey1991}: 20\,000 instancias de imágenes de las 26 letras mayúsculas del alfabeto, con \textbf{16 atributos numéricos enteros} (momentos estadísticos y conteos de bordes de la imagen, escalados al rango 0--15) y \textbf{26 clases balanceadas} ($\approx$769 muestras por clase), sin valores ausentes. El fichero oficial se descarga desde UCI (DOI \texttt{10.24432/C5ZP40}) con licencia CC BY 4.0; el origen, la referencia bibliográfica y la licencia quedan documentados en \texttt{data/README.md}, y el script \texttt{python -m data.prepare\_letter} regenera las particiones desde cero en cualquier máquina.
+
+\subsection{Preprocesado y particiones}
+
+El fichero oficial trae una partición predeterminada: las primeras 16\,000 filas forman el bloque oficial de entrenamiento y las últimas 4\,000 el bloque oficial de test. Nuestro protocolo respeta esa estructura:
+
+\begin{enumerate}
+  \item \textbf{Codificación de etiquetas}: la letra se convierte a índice entero $y \in \{0, \dots, 25\}$ con $y = \text{código}(\text{letra}) - \text{código}(\texttt{A})$.
+  \item \textbf{Mezcla y división}: el bloque oficial de entrenamiento se baraja con la semilla $0$ y se divide en $12\,000$ instancias de entrenamiento y $4\,000$ de validación; el bloque de test de 4\,000 filas permanece \emph{intacto}.
+  \item \textbf{Estandarización}: cada columna $j$ se centra y escala con la media y la desviación calculadas \emph{solo} sobre el conjunto de entrenamiento,
+  \begin{equation}
+    z_{ij} = \frac{x_{ij} - \mu_j}{\sigma_j},
+    \qquad
+    \mu_j = \frac{1}{|D_{\text{train}}|} \sum_{i \in D_{\text{train}}} x_{ij},
+    \qquad
+    \sigma_j^2 = \frac{1}{|D_{\text{train}}|} \sum_{i \in D_{\text{train}}} (x_{ij} - \mu_j)^2,
+  \end{equation}
+  y esos mismos $(\mu_j, \sigma_j)$ se aplican a validación y test (si $\sigma_j = 0$ se sustituye por 1). Efectuar el ajuste solo con entrenamiento evita fugas de información del test hacia el modelo.
+\end{enumerate}
+
+Las tres particiones se guardan como \texttt{train.npz}, \texttt{val.npz} y \texttt{test.npz} (claves \texttt{features} en float64 y \texttt{labels} en int64), no versionadas por tamaño, y se verifican en los tests (formas, determinismo por semilla y estadísticas de la estandarización). Repartos finales: 12\,000 / 4\,000 / 4\,000 instancias.
