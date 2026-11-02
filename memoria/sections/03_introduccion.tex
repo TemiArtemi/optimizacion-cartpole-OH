@@ -1,3 +1,14 @@
 \section{Introducción y motivación}
 
-Pendiente: qué problema se aborda (optimizar redes neuronales sin gradientes cuando la función objetivo no es diferenciable) y por qué es importante.
+El aprendizaje automático moderno se apoya casi por completo en el descenso por gradiente: para entrenar una red neuronal basta con escribir una pérdida diferenciable y propagar sus derivadas hacia atrás. Sin embargo, hay problemas prácticos donde ese camino se corta. En tareas de control, como mantener un polo en equilibrio sobre un carrito, la calidad de un controlador se mide por un resultado simulado (pasos de supervivencia) que no admite derivadas útiles respecto a los pesos. En el diseño de redes, además, la \emph{estructura} misma (número de capas, anchos, tasa de aprendizaje, regularización) es una decisión \emph{discreta} y mixta sobre la que el gradiente no define una dirección.
+
+Los algoritmos evolutivos ofrecen una respuesta unificada a ambos huecos: solo necesitan \emph{medir} cuán bueno es un candidato, nunca diferenciarlo. Este proyecto, propuesta A4 de la asignatura \emph{Optimización y Heurística}, desarrolla desde cero un algoritmo genético y lo aplica en dos vertientes complementarias:
+
+\begin{enumerate}
+  \item \textbf{Pesos en CartPole}: evolucionar directamente los pesos de una red neuronal de control en el entorno \emph{CartPole-v1} de Gymnasium \citep{brockman2016}, donde la función objetivo no es diferenciable, y comparar el resultado con una búsqueda aleatoria y con REINFORCE \citep{williams1992}, el método de gradiente canónico para políticas.
+  \item \textbf{Arquitectura e hiperparámetros en UCI}: usar el AG como optimizador de caja negra de la configuración de una red mayor entrenada con descenso por gradiente (PyTorch) sobre el conjunto tabular \emph{Letter Recognition} \citep{frey1991}, comparándolo con búsqueda aleatoria y con una configuración por defecto.
+\end{enumerate}
+
+La motivación es doble. Desde el punto de vista científico, las dos vertientes ilustran cuándo compite la evolución con el gradiente: cuando el objetivo es no diferenciable (vertiente 1) y cuando el espacio de decisión es mixto y evaluable solo mediante un procedimiento de entrenamiento completo (vertiente 2). Desde el punto de vista práctico, obliga a enfrentarse a los problemas reales de cualquier metaheurística: igualdad de presupuestos con las líneas base, varianza propia de los métodos estocásticos (múltiples semillas, medias y desviaciones), coste computacional de la evaluación (paralelización y medición del \emph{speedup}) y reproducibilidad estricta (semillas fijas y scripts que regeneran figuras y tablas).
+
+El resto de la memoria se organiza así: se revisa el estado del arte (sección~\ref{sec:estado}), se formula matemáticamente ambos problemas (sección~\ref{sec:formulacion}), se describen los métodos (sección~\ref{sec:metodos}), su implementación (sección~\ref{sec:implementacion}) y los datos (sección~\ref{sec:datos}); después se presentan los experimentos y resultados (sección~\ref{sec:experimentacion}), se discuten con sus limitaciones (sección~\ref{sec:discusion}) y se concluyen (sección~\ref{sec:conclusiones}).
