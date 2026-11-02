@@ -1,3 +1,38 @@
 \section{Implementación}
 
-Pendiente: organización modular del repositorio, decisiones de diseño (motor desacoplado del dominio, evaluación paralela con semillas preasignadas, evaluación paralela en el UCI con carga única del dataset por proceso) y dificultades encontradas.
+\subsection{Organización del código}
+
+El repositorio separa por responsabilidades el dominio, la evolución y los experimentos:
+
+\begin{itemize}
+  \item \texttt{src/networks/}: \texttt{numpy\_mlp.py} (red completa en NumPy: aplanado, reconstrucción de matrices y paso hacia adelante) y \texttt{torch\_mlp.py} (configuración \texttt{MLPConfig}, construcción y bucle de entrenamiento con PyTorch).
+  \item \texttt{src/genetic/}: \texttt{engine.py} (motor evolutivo), \texttt{selection.py}, \texttt{operators.py} (cruces y mutación gaussiana), \texttt{mixed\_operators.py} y \texttt{hyperparams\_chromosome.py} (codificación mixta de hiperparámetros), \texttt{random\_search.py}.
+  \item \texttt{src/environments/} y \texttt{src/evaluation/}: evaluadores de CartPole y de configuraciones UCI, ambos con evaluación paralela y semillas preasignadas.
+  \item \texttt{src/baselines/}: \texttt{reinforce.py} (línea base de gradiente en NumPy puro, con retropropagación manual).
+  \item \texttt{src/uci/}, \texttt{data/}: descarga, parsing y preprocesado del dataset.
+  \item \texttt{src/utils/}: métricas compartidas, gráficas en español y utilidades de semillas.
+  \item \texttt{tests/} (seis baterías), \texttt{experiments/} (cinco scripts reproducibles), \texttt{results/} (figuras y logs).
+\end{itemize}
+
+\subsection{Decisiones de diseño}
+
+\begin{enumerate}
+  \item \textbf{Motor desacoplado del dominio (SRP/OCP).} \texttt{run\_genetic\_algorithm} no importa ni CartPole ni PyTorch: recibe \texttt{fitness\_fn} (o un evaluador por lote \texttt{population\_fitness\_fn}), el inicializador y los operadores como llamables inyectados. El mismo motor ejecutó la función esfera en los tests, CartPole y la búsqueda de hiperparámetros sin una sola línea de cambio.
+  \item \textbf{Funciones puras y semillas explícitas.} Los operadores nunca mutan sus entradas y todos los módulos de azar reciben un \texttt{rng} explícito: cada resultado es reproducible a partir de su semilla y las pruebas pueden comparar ejecuciones completas.
+  \item \textbf{Un único formato de resultado.} \texttt{EvolutionResult} (mejor, historia por generación y curvas ya expuestas como arrays) lo comparten el AG y la búsqueda aleatoria, lo que permite gráficas y métricas genéricas.
+  \item \textbf{Evaluación paralela reproducible.} Las semillas de evaluación se sortean \emph{antes} de despachar las tareas y viajan dentro de cada tarea; así el orden en que el sistema operativo programe los procesos no afecta al resultado (verificado con tests que comparan 1, 2 y 3 trabajadores). El pool es persistente y se calienta una vez fuera de la medición; en UCI cada trabajador carga el dataset una sola vez mediante el inicializador del pool.
+  \item \textbf{Codificación mixta tipada.} Tasas de aprendizaje y weight decay en escala logarítmica, anchos y lote como potencias de dos, activación como índice categórico con mutación cíclica, y recorte a la caja permitida en decodificación y mutación.
+  \item \textbf{Determinismo completo.} Semillas en NumPy, en \texttt{torch.manual\_seed} y en el generador de barajado del \texttt{DataLoader}; \texttt{torch.set\_num\_threads(1)} evita contención de hilos entre trabajadores paralelos.
+  \item \textbf{Verificación numérica del gradiente.} La retropropagación manual de REINFORCE se valida contra diferencias finitas del log-verosimilitud ponderado (tolerancia $10^{-4}$): un error de signo o de máscara ReLU saltaría inmediatamente en los tests.
+\end{enumerate}
+
+\subsection{Dificultades encontradas}
+
+\begin{enumerate}
+  \item \textbf{La búsqueda aleatoria saturaba CartPole.} Con la red pequeña de 58 pesos, los controladores aleatorios que estabilizaban el polo eran demasiado densos: la suerte competía con la evolución. Se corrigió el protocolo (fitness robusto con condiciones iniciales nuevas en cada evaluación) y se aumentó la red a $(4,16,16,2)$, donde la evolución sí aporta de forma medible.
+  \item \textbf{El módulo de velocidad medía el arranque de procesos.} Las primeras mediciones daban speedup $0{,}17\times$: el cronómetro incluía el arranque de los trabajadores (segundos, por importar \texttt{gymnasium} en un sistema de ficheros lento). Se añadió una calentamiento explícito con un flujo de semillas separado.
+  \item \textbf{REINFORCE colapsó con tasa $0{,}01$.} La actualización suma gradientes de hasta 500 pasos y destruyó la política (media final $\approx 9{,}4$). La sonda con $0{,}001$ y $0{,}0001$ mostró que solo $10^{-3}$ aprende de forma estable; se cambió el valor por defecto con la evidencia medida.
+  \item \textbf{Perturbar la solución la destruía.} Para construir la población ``evolucionada'' del benchmark se añadió ruido $\sigma = 0{,}01$ al mejor cromosoma y la media se desplomó de 500 a 59: un controlador resuelto vive en el filo del caja (cambios mínimos en los pesos invierten decisiones de empuje). Se usaron réplicas exactas.
+  \item \textbf{Ruido de fin de línea en Git.} Windows/VS Code reescribía los ficheros con CRLF y ensuciaba cada diff; se añadió \texttt{.gitattributes} con \texttt{eol=lf}.
+  \item \textbf{Incompatibilidad de versiones.} Los \texttt{pines} de \texttt{requirements.txt} (p.\ ej.\ \texttt{numpy==2.2.6}) no tienen ruedas para Python 3.14; se documentó la versión soportada y se ejecutó el desarrollo con numpy 2.5.4 sin observar diferencias funcionales.
+\end{enumerate}
