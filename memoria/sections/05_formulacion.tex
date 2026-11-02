@@ -1,3 +1,62 @@
 \section{Formulación matemática}
 
-Pendiente: variables de decisión (cromosoma de pesos en CartPole; cromosoma mixto de arquitectura e hiperparámetros en UCI), función objetivo (recompensa media; accuracy de validación), tipo de problema y restricciones (rangos de genes, presupuesto de evaluaciones).
+Ambas vertientes del proyecto son problemas de \emph{maximización de caja negra}: no se dispone de una expresión diferenciable de la función objetivo, sino de un procedimiento que, dado un candidato, devuelve su puntuación. En ambos casos el algoritmo genético actúa como optimizador externo sobre dicho procedimiento.
+
+\subsection{Vertiente 1: optimización de los pesos en CartPole}
+
+\paragraph{Variables de decisión.}
+El candidato es un vector de pesos plano
+\begin{equation}
+  w = (w_1, \dots, w_n) \in \mathbb{R}^n,
+  \qquad n = 386 \ \text{para la arquitectura } (4,16,16,2),
+\end{equation}
+obtenido concatenando las matrices de pesos y los sesgos de cada capa. La decodificación $\theta(w)$ reconstruye las matrices $\{W_\ell, b_\ell\}$ de una red neuronal con dos capas ocultas de 16 neuronas (ReLU) y dos salidas.
+
+\paragraph{Política.}
+La red induce una política determinista $\pi_w$ que, ante un estado $s_t \in \mathbb{R}^4$ (posición y velocidad del carrito, ángulo y velocidad angular del polo), elige la acción con mayor logit:
+\begin{equation}
+  \pi_w(s_t) = \arg\max_{a \in \{0,1\}} \big[ f_w(s_t) \big]_a .
+\end{equation}
+
+\paragraph{Entorno y función objetivo.}
+El entorno CartPole-v1 aplica una dinámica fija $s_{t+1} = \delta(s_t, a_t)$ con recompensa unitaria por paso, condición de fallo $|\theta_t| > 12^\circ$ o $|x_t| > 2{,}4$ y truncado en $T_{\max} = 500$ pasos. Sean $\xi$ las condiciones iniciales aleatorias de un episodio y $T(w, \xi)$ el número de pasos sobrevividos. El objetivo real es la recompensa esperada
+\begin{equation}
+  \label{eq:cartpole-objective}
+  \max_{w \in \mathbb{R}^n} \ F(w)
+  \ = \ \mathbb{E}_{\xi}\!\left[\, \sum_{t=1}^{T(w,\xi)} r_t \,\right]
+  \ = \ \mathbb{E}_{\xi}\!\left[\, T(w, \xi) \,\right],
+\end{equation}
+estimada en la práctica con $K = 3$ episodios de condiciones iniciales distintas:
+\begin{equation}
+  \widehat{F}(w) \ = \ \frac{1}{K} \sum_{k=1}^{K} T(w, \xi_k).
+\end{equation}
+
+\paragraph{Tipo de problema.}
+Continuo, no convexo y estocástico. Aunque $w$ vive en $\mathbb{R}^n$, la política usa $\arg\max$, de modo que $\widehat{F}$ es prácticamente constante por tramos y no admite gradiente útil: es una función objetivo no diferenciable en la práctica, sin restricciones explícitas (la caja de partida la fijan la inicialización y la mutación) y con un \emph{presupuesto} de $N = 3000$ evaluaciones que comparte con las líneas base.
+
+\subsection{Vertiente 2: arquitectura e hiperparámetros en Letter Recognition}
+
+\paragraph{Variables de decisión.}
+Un cromosoma mixto $x \in \mathcal{X} \subset \mathbb{R}^{10}$ donde siete genes son enteros o categóricos y tres son continuos:
+\begin{align}
+  \ell &\in \{1,2,3,4\} \quad \text{(número de capas ocultas)}, &
+  h_i &= 2^{k_i}, \ k_i \in \{4,\dots,8\} \quad \text{(anchos de capa: 16--256)}, \\
+  a &\in \{\text{ReLU}, \text{tanh}, \text{LeakyReLU}\}, &
+  \eta &= 10^{u}, \ u \in [-4,-1] \quad \text{(tasa de aprendizaje)}, \\
+  \lambda &= 10^{v}, \ v \in [-6,-2] \quad \text{(weight decay)}, &
+  p &\in [0, 0.5] \quad \text{(dropout)}, \\
+  b &= 2^{m}, \ m \in \{4,\dots,8\} \quad \text{(tamaño de lote)}. &&
+\end{align}
+Las tasas de aprendizaje y el weight decay se codifican en escala logarítmica porque su efecto es multiplicativo: un paso aditivo pequeño en $u$ equivale a un factor constante en $\eta$.
+
+\paragraph{Procedimiento interior (caja negra).}
+Dado $x$, se construye la red $f_{w}$ con la configuración decodificada $\theta(x)$ y se entrena $E = 20$ épocas con descenso por gradiente (Adam, entropía cruzada) sobre el conjunto de entrenamiento $D_{\text{train}}$, obteniendo pesos $w^*(x)$ deterministas dada la semilla. La puntuación es la exactitud en validación
+\begin{equation}
+  A(x) \ = \ \frac{1}{|D_{\text{val}}|} \sum_{(s,y) \in D_{\text{val}}} \mathbb{1}\!\left[ \arg\max_{c} f_{w^*(x)}(s)_c = y \right].
+\end{equation}
+
+\paragraph{Tipo de problema.}
+Maximización estocástica, no convexa y \emph{mixta} (genes discretos y continuos con restricciones de caja $\mathcal{X}$), donde la función objetivo es la \emph{composición} de un algoritmo de entrenamiento por gradiente con la medición de exactitud: el optimizador externo nunca ve gradientes, solo la exactitud final. Presupuesto: $N = 240$ evaluaciones por ejecución.
+
+\paragraph{Separación entrenamiento, validación y test.}
+La búsqueda solo observa $D_{\text{val}}$. El mejor candidato $x^*$ de cada semilla se reentrena con $D_{\text{train}} \cup D_{\text{val}}$ y se evalúa \emph{una única vez} sobre $D_{\text{test}}$, intacto desde la partición oficial, con la misma semilla para los tres métodos comparados.
