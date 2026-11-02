@@ -6,3 +6,4 @@ venv/
 .pytest_cache/
 data/raw/
 data/letter/
+results/logs/phase3_console*.log
