@@ -1,4 +1,22 @@
 \section{Conclusiones y trabajo futuro}
-\label{sec:conclusiones}
 
-Pendiente: conclusiones de las dos vertientes del proyecto y trabajo futuro (NEAT, CMA-ES, más entornos, búsqueda bayesiana de hiperparámetros como referencia moderna).
+\subsection{Conclusiones}
+
+El proyecto ha respondido a las dos preguntas del enunciado con implementación propia, experimentación reproducibles y comparativas en igualdad de condiciones:
+
+\begin{enumerate}
+  \item \textbf{¿Puede un algoritmo genético entrenar un controlador sin gradientes?} Sí: con selección por torneo, elitismo, cruce de un punto y mutación gaussiana, el AG resuelve CartPole-v1 en 5/5 semillas con 470 evaluaciones de media, 1,5$\times$ menos que la búsqueda aleatoria y 3,1$\times$ menos que REINFORCE en el mismo presupuesto de episodios. La comparación con el método de gradiente canónico muestra además que REINFORCE, aunque aprende, lo hace tarde y con mucha varianza.
+  \item \textbf{¿Puede el AG diseñar la red que aprende por gradiente?} Sí: sobre Letter Recognition, el AG mejora a la búsqueda aleatoria en las 5 semillas y gana 8--9 puntos sobre la configuración por defecto, alcanzando 0,96 de exactitud en test con solo 240 evaluaciones de búsqueda.
+  \item \textbf{Aportaciones transversales.} Un motor evolutivo desacoplado del dominio reutilizado en las dos vertientes; operadores tipados para cromosomas mixtos; evaluación paralela reproducible con semillas preasignadas (speedup medido de 4,76$\times$ en 12 núcleos); un hallazgo metodológico (la búsqueda aleatoria satura tareas fáciles, lo que obliga a endurecer los benchmarks) y la verificación numérica del gradiente de REINFORCE por diferencias finitas.
+\end{enumerate}
+
+\subsection{Trabajo futuro}
+
+\begin{itemize}
+  \item NEAT \citep{stanley2002} y CMA-ES \citep{hansen2001} como evolucionadores de topología y referencia en caja negra continua.
+  \item Más entornos de Gymnasium (LunarLander, BipedalWalker) para estudiar la escala del efecto.
+  \item Optimización bayesiana \citep{snoek2012} como baseline moderno de búsqueda de hiperparámetros frente al AG.
+  \item Variantes de REINFORCE con línea base adaptativa y retornos normalizados, y barrido de hiperparámetros de ambos métodos.
+  \item Más semillas con tests estadísticos por pares (signo/Wilcoxon) y análisis de sensibilidad al presupuesto y al tamaño de población.
+  \item Análisis de la robustez de los controladores evolucionados frente a perturbaciones del entorno.
+\end{itemize}
