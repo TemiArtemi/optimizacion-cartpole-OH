@@ -1,3 +1,73 @@
 \section{Métodos}
 
-Pendiente: selección por torneo y por ruleta, elitismo, cruces (un punto, uniforme, BLX-$\alpha$), mutación gaussiana y mutación mixta, motor evolutivo, búsqueda aleatoria, REINFORCE con línea base, complejidad y justificación de cada operador.
+\subsection{Algoritmo genético general}
+
+Ambas vertientes comparten un único motor evolutivo, implementado desde cero y desacoplado del dominio: recibe una función de \emph{fitness}, un inicializador y los operadores genéticos como parámetros. Su esqueleto es el clásico ciclo de generaciones con evaluación por presupuesto:
+
+\begin{enumerate}
+  \item \textbf{Inicializar}: muestrear $P$ candidatos aleatorios.
+  \item \textbf{Evaluar}: puntuar toda la población (aquí radica el cuello de botella computacional).
+  \item \textbf{Registrar}: mejor, media y desviación de la generación, y evaluaciones acumuladas.
+  \item \textbf{Elitismo}: copiar intactos los $e$ mejores a la siguiente generación.
+  \item \textbf{Seleccionar}: elegir progenitores con torneo ($k=3$) o ruleta.
+  \item \textbf{Recombinar y mutar}: generar los $P-e$ hijos restantes.
+  \item Repetir hasta agotar el presupuesto $N$ de evaluaciones (enteras: $N/P$ generaciones).
+\end{enumerate}
+
+El mejor-so-far nunca decrece gracias al elitismo, y el presupuesto \emph{exacto} de evaluaciones garantiza comparaciones justas frente a las líneas base.
+
+\subsection{Selección}
+
+\paragraph{Torneo con $k=3$.}
+Para cada hueco de progenitor se extraen $k$ índices uniformemente sin reemplazo y se devuelve el de mayor fitness:
+\begin{equation}
+  i^* = \arg\max_{i \in S_k} F(x_i), \qquad S_k \sim \text{Uniforme}(\{1,\dots,P\}, k).
+\end{equation}
+La presión de selección crece con $k$: con $k=1$ todos tienen igual probabilidad y con $k=P$ siempre gana el mejor (estancamiento). $k=3$ equilibra explotación y diversidad.
+
+\paragraph{Ruleta (proporcional al fitness).}
+Probabilidad $p_i = f_i / \sum_j f_j$ con los fitness desplazados a positivos, $f_i = F(x_i) - \min_j F(x_j) + \varepsilon$, $\varepsilon = 10^{-12}$, porque la fórmula exige valores estrictamente positivos. Cuando un individuo domina claramente, su porción de ruleta aplasta a los demás y la diversidad colapsa: es la debilidad clásica de este operador, que en nuestros experimentos se matiza porque el fitness es ruidoso (cada evaluación usa condiciones iniciales distintas) y el elitismo protege al mejor sin depender de la selección.
+
+\subsection{Operadores de cruce}
+
+\paragraph{Un punto.}
+Se corta el cromosoma en un punto aleatorio $c \in \{1,\dots,n-1\}$ y se intercambian las colas: los bloques contiguos (una capa completa de la red) se preservan íntegros.
+
+\paragraph{Uniforme.}
+Gen a gen, cada hijo toma el valor de uno de los progenitores con probabilidad $1/2$:
+\begin{equation}
+  h_j = \begin{cases} a_j & \text{con prob. } 1/2 \\ b_j & \text{con prob. } 1/2 \end{cases}
+  \qquad j = 1,\dots,n.
+\end{equation}
+Mezcla máxima, ideal cuando los genes son independientes: es el cruce empleado en el cromosoma de 10 hiperparámetros, donde cada gen codifica una decisión distinta.
+
+\paragraph{BLX-$\alpha$.}
+Para pesos reales, cada gen hijo se muestrea uniformemente del intervalo que une a los progenitores ampliado un factor $\alpha = 0{,}5$ a ambos lados, con $d_j = |a_j - b_j|$:
+\begin{equation}
+  h_j \sim \mathcal{U}\!\left( \min(a_j, b_j) - \alpha d_j,\ \max(a_j, b_j) + \alpha d_j \right).
+\end{equation}
+Hereda lo bueno de ambos y explora \emph{fuera} de ellos sin saltos descontrolados. En la comparación de operadores de CartPole, BLX-$\alpha$ alcanzó la puntuación perfecta antes que los otros dos cruces.
+
+\subsection{Mutación}
+
+\paragraph{Gaussiana para pesos.}
+Cada gen se muta con probabilidad $\rho = 0{,}1$ añadiendo ruido $\mathcal{N}(0, \sigma^2)$ con $\sigma = 0{,}1$: afinamiento local alrededor de lo que la selección ya construyó.
+
+\paragraph{Mixta para hiperparámetros.}
+Con probabilidad $\rho = 0{,}3$ por gen, el ruido se adapta al \emph{tipo} del gen: los índices discretos (capas, anchos, lote) se redondean y recortan a su rango entero; el gen de activación \emph{cicla} a otra activación distinta; los continuos (dropout, tasas en escala logarítmica) reciben ruido gaussiano $\sigma = 0{,}3$. Todo se recorta a la caja $\mathcal{X}$ permitida.
+
+\subsection{Línea base: búsqueda aleatoria}
+
+Mismo presupuesto de evaluaciones y mismo inicializador que el AG, sin selección ni recombinación: se muestrean candidatos i.i.d. y se conserva el mejor. Es la referencia que responde ``¿aporta algo la evolución frente a la suerte?''.
+
+\subsection{Línea base de gradiente: REINFORCE}
+
+Entrenamos una política estocástica con la red NumPy de la Fase 1, con $\pi_w(a \mid s) = \text{softmax}(f_w(s))$, muestreando acciones. Tras cada episodio se actualiza en sentido ascenso de gradiente con la regla
+\begin{equation}
+  w \leftarrow w + \frac{\nu}{B} \sum_{e=1}^{B} \sum_{t} \big( G_t^{(e)} - \bar{b}^{(e)} \big)\, \nabla_w \log \pi_w\!\left( a_t^{(e)} \mid s_t^{(e)} \right),
+\end{equation}
+donde $G_t$ es el retorno desde el paso $t$ (recompensa unitaria, sin descuento), $\bar{b}$ la media de retornos del lote de $B = 10$ episodios (línea base que reduce la varianza sin sesgar el estimador) y $\nu = 0{,}001$ la tasa de aprendizaje. La identidad $\nabla_z \log \pi(a \mid s) = \mathbb{1}[a] - \text{softmax}(z)$ en las salidas permite propagar el error hacia atrás a mano (la verificamos por diferencias finitas en los tests). Con $\nu = 0{,}01$ la política \emph{colapsó} (media final $\approx 9{,}4$ pasos): la suma de gradientes a lo largo de hasta 500 pasos amplifica cada actualización y destruye la estructura aprendida; la tasa 10 veces menor converge de forma estable. Este contraste (el AG nunca usa gradientes; REINFORCE se construye solo con ellos) es el eje de la comparación.
+
+\subsection{Paralelización}
+
+La evaluación de una población se reparte entre procesos con \texttt{ProcessPoolExecutor}: cada tarea lleva su cromosoma y una semilla de evaluación \emph{preasignada} (dibujada antes del despacho), de modo que el resultado no depende del orden de programación de los procesos. Los trabajadores cargan el dataset una sola vez (inicializador del pool), se descartan tareas de más de un gen (\texttt{chunksize=1}) para equilibrar la carga cuando los tiempos de episodio varían $\times 50$, y se realiza una ejecución de calentamiento sin cronometrar para no medir el arranque de procesos. La ganancia se mide como $S(p) = t_{\text{secuencial}} / t_p$ frente a la línea ideal $S(p) = p$ (ver sección~\ref{sec:experimentacion}).
