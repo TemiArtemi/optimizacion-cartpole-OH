@@ -3,7 +3,9 @@ import zipfile
 from pathlib import Path
 
 import numpy as np
+import torch
 
+from src.networks.torch_mlp import MLPConfig, build_mlp, train_and_evaluate
 from src.uci.dataset import load_letter_dataset
 from src.uci.preparation import (
     FEATURE_COUNT,
@@ -19,6 +21,30 @@ from src.uci.preparation import (
 )
 
 DATA_DIRECTORY = Path(__file__).resolve().parents[1] / "data" / "letter"
+
+
+def make_test_config() -> MLPConfig:
+    """Builds a small valid network configuration for the torch smoke tests."""
+    return MLPConfig(
+        hidden_sizes=(32,),
+        activation="relu",
+        dropout=0.1,
+        learning_rate=1e-3,
+        weight_decay=0.0,
+        batch_size=32,
+    )
+
+
+def make_training_sample(
+    row_count: int = 400,
+    class_count: int = LETTER_CLASSES,
+    seed: int = 0,
+) -> tuple[np.ndarray, np.ndarray]:
+    """Builds a small learnable sample whose features shift with the class index."""
+    rng = np.random.default_rng(seed)
+    labels = np.arange(row_count, dtype=np.int64) % class_count
+    features = rng.normal(size=(row_count, FEATURE_COUNT)) + labels[:, None]
+    return features, labels
 
 
 def make_letter_table(row_count: int = TRAIN_SIZE + VALIDATION_SIZE + TEST_SIZE) -> tuple[np.ndarray, np.ndarray]:
@@ -140,8 +166,78 @@ def test_prepared_repository_data_matches_documented_shapes() -> None:
     assert dataset.train.labels.min() >= 0 and dataset.train.labels.max() < LETTER_CLASSES
 
 
+def test_build_mlp_output_shape_matches_class_count() -> None:
+    """Checks that the built network maps a batch of rows to one logit per class."""
+    features, _ = make_training_sample(64)
+    model = build_mlp(FEATURE_COUNT, LETTER_CLASSES, make_test_config())
+    with torch.no_grad():
+        logits = model(torch.tensor(features, dtype=torch.float32))
+    assert logits.shape == (64, LETTER_CLASSES)
+
+
+def test_build_mlp_rejects_unknown_activation() -> None:
+    """Checks that an activation outside the catalog is rejected at build time."""
+    config = MLPConfig(
+        hidden_sizes=(8,),
+        activation="swish",
+        dropout=0.0,
+        learning_rate=1e-3,
+        weight_decay=0.0,
+        batch_size=16,
+    )
+    try:
+        build_mlp(FEATURE_COUNT, LETTER_CLASSES, config)
+        raise AssertionError("expected ValueError for an unknown activation")
+    except ValueError:
+        pass
+
+
+def test_train_and_evaluate_returns_bounded_accuracy() -> None:
+    """Checks that a short training run finishes and returns an accuracy in the unit interval."""
+    train_x, train_y = make_training_sample(400, seed=0)
+    validation_x, validation_y = make_training_sample(100, seed=1)
+    accuracy = train_and_evaluate(
+        make_test_config(),
+        train_x,
+        train_y,
+        validation_x,
+        validation_y,
+        class_count=LETTER_CLASSES,
+        epochs=2,
+        seed=5,
+    )
+    assert 0.0 <= accuracy <= 1.0
+
+
+def test_train_and_evaluate_is_deterministic_per_seed() -> None:
+    """Checks that repeating a seeded training run reproduces the exact accuracy."""
+    train_x, train_y = make_training_sample(200, seed=0)
+    validation_x, validation_y = make_training_sample(60, seed=1)
+    first = train_and_evaluate(
+        make_test_config(),
+        train_x,
+        train_y,
+        validation_x,
+        validation_y,
+        class_count=LETTER_CLASSES,
+        epochs=2,
+        seed=9,
+    )
+    second = train_and_evaluate(
+        make_test_config(),
+        train_x,
+        train_y,
+        validation_x,
+        validation_y,
+        class_count=LETTER_CLASSES,
+        epochs=2,
+        seed=9,
+    )
+    assert first == second
+
+
 def main() -> None:
-    """Runs every phase 3 data test and reports the result."""
+    """Runs every phase 3 test and reports the result."""
     test_read_letter_table_maps_letters_to_indices()
     test_read_letter_table_rejects_unknown_letters()
     test_build_splits_partitions_the_official_blocks()
@@ -150,7 +246,11 @@ def main() -> None:
     test_prepare_letter_splits_is_deterministic_and_label_preserving()
     test_save_and_load_roundtrip()
     test_prepared_repository_data_matches_documented_shapes()
-    print("All phase 3 data tests passed.")
+    test_build_mlp_output_shape_matches_class_count()
+    test_build_mlp_rejects_unknown_activation()
+    test_train_and_evaluate_returns_bounded_accuracy()
+    test_train_and_evaluate_is_deterministic_per_seed()
+    print("All phase 3 tests passed.")
 
 
 if __name__ == "__main__":
