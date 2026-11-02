@@ -1,3 +1,24 @@
 \section{Descripción del problema y estado del arte}
 
-Pendiente: revisión de la literatura con referencias reales (algoritmos genéticos, estrategias evolutivas, NEAT, CMA-ES, métodos de gradiente para control y búsqueda de hiperparámetros).
+\subsection{Optimización evolutiva: origen y familia de métodos}
+
+Los algoritmos genéticos nacen del trabajo de \citet{holland1975}, formalizados por \citet{goldberg1989}, y evolucionan poblaciones de candidatos mediante selección, recombinación y mutación sin requerir información de gradiente. En paralelo, las estrategias evolutivas de \citet{rechenberg1973} y \citet{schwefel1995} optimizan variables reales mediante mutación adaptativa; su versión moderna, CMA-ES \citep{hansen2001}, es hoy un referencia en optimización de caja negra continua y se cita como alternativa escalable al aprendizaje por refuerzo. \citet{goldberg89schema} revisan la intersección entre algoritmos genéticos y aprendizaje automático.
+
+\subsection{Neuroevolución en tres niveles}
+
+Aplicar evolución a redes neuronales admite tres granularidades distintas \citep{yao1997}:
+(i) \emph{evolucionar los pesos}, sustituyendo la retropropagación cuando la función de pérdida no admite gradientes útiles o la tarea es de control \citep{stanley2002};
+(ii) \emph{evolucionar la topología}, como NEAT \citep{stanley2002}, que crece la red y protege la innovación con marcadores históricos;
+(iii) \emph{evolucionar hiperparámetros y arquitectura}, actuando como optimizador externo sobre un entrenamiento por gradiente convencional. Este proyecto abarca (i) y (iii): las dos vertientes del enunciado.
+
+\subsection{Métodos de gradiente para control y su contraste con la evolución}
+
+El estimador REINFORCE \citep{williams1992} actualiza la política en la dirección del gradiente esperado del log-verosimilitud ponderado por la recompensa; su teoría con aproximadores de función se fija en \citet{sutton1999}. Es el método canónico de \emph{policy gradient} y la referencia clásica de ``entrenamiento con retropropagación'' frente a la que queremos comparar la evolución. En entornos de control como CartPole \citep{brockman2016}, la recompensa es un indicador de supervivencia no diferenciable respecto a los pesos (el $\arg\max$ de la política hace la función plano por tramos), lo que justifica el uso de métodos de caja negra como el AG \citep{goldberg1989}.
+
+\subsection{Búsqueda de hiperparámetros}
+
+En la práctica, la arquitectura y los hiperparámetros se eligen por prueba y error. \citet{bergstra2012} demostraron que la búsqueda aleatoria bien fundamentada supera a la búsqueda en rejilla, y la optimización bayesiana \citep{snoek2012} es hoy el estándar de la industria. Estos métodos comparten con nuestro planteamiento la visión de caja negra: la calidad de una configuración se mide entrenando la red, sin observar los gradientes del propio entrenamiento. El algoritmo genético es una alternativa natural cuando el espacio es \emph{mixto} (discreto y continuo, con dependencias entre genes, como el número de capas y sus anchos), donde la codificación directa del espacio es más natural que en los modelos gaussianos estándar de la optimización bayesiana.
+
+\subsection{Posicionamiento de este trabajo}
+
+Las referencias anteriores dejan dos huecos que este proyecto ocupa con implementación propia: una comparación \emph{en igualdad de condiciones} (mismo presupuesto, mismas semillas, mismas condiciones iniciales) entre evolución, suerte y gradiente sobre una tarea de control no diferenciable; y el uso del AG como optimizador de caja negra sobre entrenamientos por gradiente en datos tabulares reales, con operadores genéticos diseñados para la representación mixta de una configuración de red. Los trabajos clásicos motivan cada pieza; la aportación propia es la implementación, el protocolo experimental y el análisis conjunto de las dos vertientes.
