@@ -1,4 +1,28 @@
 \section{Discusión}
-\label{sec:discusion}
 
-Pendiente: interpretación crítica de los resultados (por qué la búsqueda aleatoria satura CartPole con redes pequeñas, por qué la ruleta no se estancó, el papel del fitness ruidoso, el problema de varianza de REINFORCE, validez estadística con 5 semillas) y limitaciones del trabajo.
+\subsection{¿Qué método funciona mejor y por qué}
+
+\textbf{La evolución es el método más fiable y más eficiente en las dos vertientes.} En CartPole alcanza el óptimo con 1,5--2,2$\times$ menos evaluaciones que la suerte y con 5/5 éxitos; en Letter Recognition gana en las 5 semillas en validación y 4 en test. Su ventaja nace de \emph{acumular} información: la selección y el cruce concentran la búsqueda en regiones prometedoras, mientras que la búsqueda aleatoria solo acumula suerte.
+
+\textbf{Pero la suerte basta cuando el espacio de soluciones es denso.} Con la red pequeña de 58 pesos, la búsqueda aleatoria saturaba CartPole: bastaba con muestrear un hiperplano estabilizador. Este hallazgo (que costó detectar y exigió endurecer el protocolo con fitness robusto y una red mayor) es una lección central: \emph{un baseline débil convierte cualquier metaheurística en una victoria vacía}, y por eso la igualdad de presupuestos y la dureza del problema son parte del rigor, no un detalle.
+
+\textbf{La ruleta no se estancó y ganó al torneo, contra la intuición teórica.} La explicación es sistémica: el fitness es ruidoso (cada evaluación usa condiciones iniciales distintas), de modo que ningún individuo puede monopolizar la selección durante generaciones, y el elitismo protege al mejor independientemente de la selección. Selección, elitismo y evaluación ruidosa funcionan como un equipo. Con solo 5 semillas esto es una tendencia sugestiva (la ruleta venció o empató al torneo en las 5 semillas por pares, 4 victorias y 1 empate), no una diferencia demostrada a nivel de significación clásico.
+
+\textbf{Los cruces se ordenan según la representación.} BLX-$\alpha$ (310 evaluaciones) supera al un punto (470) y el uniforme es el peor y el más variable (550): mezclar gen a gen rompe bloques de pesos coadaptados. En cambio, para el cromosoma de 10 hiperparámetros casi independientes, el cruce uniforme es el adecuado: la lección es que \emph{no existe un operador óptimo en abstracto, sino por representación}.
+
+\textbf{REINFORCE ilustra el problema de la varianza del gradiente.} Su curva (meseta $\approx$100 durante 2000 episodios, despegue tardío, banda muy ancha) y su colapso con tasa $0{,}01$ muestran que el estimador de política es sensible y ruidoso: cada actualización depende de un solo lote de episodios. La evolución no necesita crédito temporal ni derivadas y paga con muestras: en este presupuesto, es más barato medir 9000 episodios con selección que estimar gradientes con ellos. La comparación no es del todo simétrica: REINFORCE solo se ajustó hasta la estabilidad ($10^{-3}$), sin barrido de hiperparámetros, mientras que sus mejores variantes (línea base adaptativa, normalización de retornos, descuentos) podrían acercarse.
+
+\subsection{Vertiente UCI: matices estadísticos}
+
+En Letter Recognition la ventaja del AG en validación (1,18 puntos, 5/5 por pares) se reduce en test (0,72 puntos) y ambas son del orden de la desviación típica ($\approx$1 punto con $n=5$). Hay dos razones: (i) la selección del máximo de 240 evaluaciones \emph{sobreestima} la validación (sesgo de selección que comparten AG y aleatoria por igual), por lo que \emph{solo el test es una estimación sin sesgo} de la generalización; (ii) con 5 semillas, las tendencias son sugestivas y deberían presentarse como tales (la evidencia por pares es la más sólida). Frente a la configuración por defecto, en cambio, la diferencia es de 8--9 puntos: \emph{sintonizar la configuración importa mucho}, y cualquier método de búsqueda razonable (evolución o azar) gana al diseño manual no examinado.
+
+\subsection{Limitaciones del trabajo}
+
+\begin{enumerate}
+  \item \textbf{Potencia estadística}: 5 semillas por configuración; las comparaciones AG--aleatoria son sólidas por pares, pero las diferencias entre operadores no alcanzan significación clásica.
+  \item \textbf{Un solo problema por vertiente}: CartPole-v1 concretamente satura con presupuestos holgados, y Letter Recognition es un único dataset tabular; no se puede generalizar a ``la evolución siempre supera al azar''.
+  \item \textbf{REINFORCE sin sintonía fina}: solo se ajustó la tasa hasta la estabilidad; faltan variantes modernas (línea base adaptativa, retornos normalizados) y su comparación con optimización bayesiana \citep{snoek2012} como referencia de búsqueda de hiperparámetros.
+  \item \textbf{Coste no comparable entre vertientes}: los tiempos de búsqueda (minutos en CartPole, $\approx$10 min por semilla en Letter) dependen del hardware; el speedup se midió en una sola máquina.
+  \item \textbf{Reproducibilidad del entrenamiento con PyTorch}: exacta por máquina, con diferencias de cuarto decimal entre CPUs (rutinas BLAS); documentado en el README y verificado por re-ejecución íntegra.
+  \item \textbf{Presupuestos elegidos} (3000 evaluaciones en CartPole, 240 en Letter): razonables y justificados por el coste, pero no se realizó análisis de sensibilidad al presupuesto.
+\end{enumerate}
