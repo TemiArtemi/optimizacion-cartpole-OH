@@ -1,3 +1,32 @@
 \section{Uso de inteligencia artificial}
 
-Pendiente: herramientas utilizadas (OpenCode con modelos de lenguaje), tareas encomendadas, ejemplos de peticiones relevantes y valoración crítica (incluyendo los errores detectados y corregidos).
+\subsection{Herramientas utilizadas}
+
+El proyecto se ha desarrollado con un \emph{agente de programación} basado en modelos de lenguaje (OpenCode con modelos tipo GPT/Claude/Gemini según disponibilidad), interactuando en el chat en inglés y con el código y la documentación en los idiomas exigidos por las reglas del repositorio (código en inglés, documentación y figuras en español). No se ha empleado ninguna librería de algoritmos genéticos: todo el núcleo evolutivo es implementación propia, como exige el enunciado.
+
+\subsection{Tareas encomendadas a la IA}
+
+\begin{enumerate}
+  \item \textbf{Comprensión y explicación}: pedir explicaciones alternativas de conceptos (codificación de cromosomas, selección por torneo y ruleta, elitismo, REINFORCE) y de decisiones de diseño, para verificar la comprensión del equipo antes de aceptar cada paso.
+  \item \textbf{Diseño por fases}: planteamiento iterativo del plan de trabajo (\texttt{PLAN.md}) con opciones y preguntas de decisión en cada punto abierto (criterio de parada, presupuesto de evaluaciones, paralelización, configuración de REINFORCE).
+  \item \textbf{Generación y revisión de código}: implementación de los módulos de la Fase 0 a la 3 (motor, operadores, evaluadores paralelos, REINFORCE, preprocesado UCI) y revisión cruzada del trabajo de otro miembro del equipo.
+  \item \textbf{Diagnóstico experimental}: diseño e interpretación de sondas de validación (colapso de REINFORCE con tasa $0{,}01$, medición de \texttt{speedup} con arranque de procesos, densidad de soluciones aleatorias en CartPole).
+  \item \textbf{Redacción}: borradores de esta memoria y del README, siempre a partir de resultados reales de ejecuciones del propio código.
+\end{enumerate}
+
+\subsection{Ejemplos de peticiones relevantes}
+
+\begin{itemize}
+  \item ``\emph{Why do we have 386 weights to train? I thought there were only two, one associated to moving the cart to the left and the other one to the right...}'': petición que forzó a justificar la arquitectura de la red y el papel de cada parámetro.
+  \item ``\emph{Can you explain detailed and clear why we are implementing and comparing it with a random search, how the random search works, how exactly does the genetic algorithm work, what is elitism, tournament and roulette wheel?}'': petición de revisión integral de los métodos antes de continuar.
+  \item ``\emph{My mate did the phase 3, pull all the changes and review what he did, tell if he did something wrong}'': revisión de código ajeno que detectó omisiones de mensajes en tests, duplicación de código y decisiones estadísticas a matizar.
+  \item Petición de presentar \emph{opciones y esperar decisión} ante alternativas de diseño (formato de la memoria, tasa de aprendizaje, alcance de la comparación de operadores).
+\end{itemize}
+
+\subsection{Valoración crítica}
+
+\textbf{Utilidad.} La IA aceleró enormemente la implementación y permitió abordar las dos vertientes completas con rigor: bucles paralelos reproducibles, verificación del gradiente por diferencias finitas y experimentos con múltiples semillas. Las explicaciones iterativas (estilo ``profesor ante un alumno nuevo'') fueron el mecanismo de control de comprensión del equipo: nada se aceptó sin entenderlo.
+
+\textbf{Errores detectados y corregidos.} (i) La configuración aprobada de REINFORCE con tasa $0{,}01$ \emph{colapsó} la política; la sonda empírica mostró el problema y se cambió a $10^{-3}$ con evidencia medida. (ii) El primer módulo de \texttt{speedup} cronometraba el arranque de los procesos y daba aceleraciones de $0{,}17\times$; se corrigió con calentamiento previo. (iii) Una población ``evolucionada'' perturbada con ruido $\sigma = 0{,}01$ destruyó las soluciones, revelando que un controlador resuelto es sensible al filo. (iv) Un \texttt{commit} arrastró sin querer ficheros personales no comprometibles, detectado al verificar el índice de \texttt{git}. (v) Una aserción de test errónea (la implementación era correcta, el test no).
+
+\textbf{Límites.} Los resultados citados en esta memoria proceden exclusivamente de ejecuciones reales del código del repositorio; las referencias bibliográficas son obras clásicas verificadas. Aun así, el equipo es responsable de cada línea: toda decisión de diseño, cada hiperparámetro y cada interpretación fue discutida y validada por las personas autoras, y la IA no sustituyó ese juicio.
