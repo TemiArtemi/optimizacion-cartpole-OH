@@ -148,6 +148,42 @@ def test_random_search_respects_budget() -> None:
     assert result.best_fitness == result.history[-1].best_so_far
 
 
+def test_random_search_matches_between_individual_and_population_scoring() -> None:
+    """Checks that population scoring reproduces the individual scoring run for the same seed."""
+
+    def population_fitness(population: np.ndarray) -> np.ndarray:
+        """Returns the sphere value for every row of the given population."""
+        return np.array([sphere_fitness(row) for row in population], dtype=np.float64)
+
+    batched = run_random_search(
+        None,
+        sphere_init,
+        population_size=25,
+        max_evaluations=100,
+        seed=6,
+        population_fitness_fn=population_fitness,
+    )
+    serial = run_random_search(sphere_fitness, sphere_init, population_size=25, max_evaluations=100, seed=6)
+    assert batched.best_fitness == serial.best_fitness
+    assert np.array_equal(batched.best_chromosome, serial.best_chromosome)
+    try:
+        run_random_search(
+            sphere_fitness,
+            sphere_init,
+            population_size=25,
+            max_evaluations=100,
+            population_fitness_fn=population_fitness,
+        )
+        raise AssertionError("expected ValueError when both scoring functions are given")
+    except ValueError:
+        pass
+    try:
+        run_random_search(None, sphere_init, population_size=25, max_evaluations=100)
+        raise AssertionError("expected ValueError when no scoring function is given")
+    except ValueError:
+        pass
+
+
 def test_genetic_algorithm_beats_random_search_under_same_budget() -> None:
     """Checks that the genetic algorithm clearly outperforms random search on the sphere."""
     ga = run_genetic_algorithm(
@@ -255,6 +291,7 @@ def main() -> None:
     test_engine_is_reproducible_for_a_fixed_seed()
     test_engine_rejects_invalid_configuration()
     test_random_search_respects_budget()
+    test_random_search_matches_between_individual_and_population_scoring()
     test_result_curves_expose_history_as_arrays()
     test_genetic_algorithm_beats_random_search_under_same_budget()
     print("All phase 1 tests passed.")
