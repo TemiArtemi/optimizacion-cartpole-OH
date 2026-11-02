@@ -29,7 +29,7 @@ Fichero vivo y breve: refleja **qué está hecho** y **qué toca a continuación
 
 ### Tarea inmediata
 
-- **Fase 4:** memoria según la estructura del enunciado (incluye apartado de uso de IA), README definitivo y regeneración de tablas y figuras reproducibles.
+- **Fase 4:** revisión del equipo de la memoria (`memoria/sections/`, especialmente la sección 13 de uso de IA) y pulido final; decidir si se prepara la presentación opcional.
 
 ---
 
@@ -66,9 +66,9 @@ Fichero vivo y breve: refleja **qué está hecho** y **qué toca a continuación
 
 ### Fase 4 — Memoria y entregables
 
-- [ ] Memoria según la estructura del enunciado (incluye apartado de uso de IA).
-- [ ] README definitivo con instalación y ejecución.
-- [ ] Regeneración de tablas y figuras a partir de scripts reproducibles.
+- [ ] Memoria según la estructura del enunciado (incluye apartado de uso de IA): borrador completo en `memoria/` (compila con `tectonic memoria/main.tex` desde la raíz), pendiente de revisión del equipo.
+- [x] README definitivo con instalación, ejecución y regeneración de experimentos.
+- [x] Regeneración de tablas y figuras a partir de scripts reproducibles (los tres experimentos de NumPy reproducen bytes idénticos; la vertiente PyTorch es exacta por máquina con diferencias de cuarto decimal entre CPUs, documentado).
 - [ ] Presentación opcional (decidir cuando haya resultados).
 
 ### Ampliaciones posibles (sin comprometer)
