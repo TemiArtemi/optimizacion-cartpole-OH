@@ -1,3 +1,4 @@
+import math
 import tempfile
 import zipfile
 from pathlib import Path
@@ -5,7 +6,18 @@ from pathlib import Path
 import numpy as np
 import torch
 
-from src.networks.torch_mlp import MLPConfig, build_mlp, train_and_evaluate
+from src.genetic.hyperparams_chromosome import (
+    ACTIVATION_GENE,
+    CHROMOSOME_LENGTH,
+    DEFAULT_CONFIG,
+    GENE_HIGH,
+    GENE_LOW,
+    decode,
+    random_chromosome,
+)
+from src.genetic.mixed_operators import mixed_mutation
+from src.genetic.operators import uniform_crossover
+from src.networks.torch_mlp import ACTIVATIONS, MLPConfig, build_mlp, train_and_evaluate
 from src.uci.dataset import load_letter_dataset
 from src.uci.preparation import (
     FEATURE_COUNT,
@@ -236,6 +248,73 @@ def test_train_and_evaluate_is_deterministic_per_seed() -> None:
     assert first == second
 
 
+def test_decode_reconstructs_documented_configuration() -> None:
+    """Checks that the canonical chromosome of the default configuration decodes exactly."""
+    chromosome = np.array([2.0, 6.0, 6.0, 4.0, 4.0, 0.0, -3.0, -4.0, 0.2, 6.0], dtype=np.float64)
+    config = decode(chromosome)
+    assert config.hidden_sizes == DEFAULT_CONFIG.hidden_sizes
+    assert config.activation == DEFAULT_CONFIG.activation
+    assert math.isclose(config.learning_rate, DEFAULT_CONFIG.learning_rate)
+    assert math.isclose(config.weight_decay, DEFAULT_CONFIG.weight_decay)
+    assert math.isclose(config.dropout, DEFAULT_CONFIG.dropout)
+    assert config.batch_size == DEFAULT_CONFIG.batch_size
+
+
+def test_decode_rejects_wrong_chromosome_length() -> None:
+    """Checks that chromosomes without exactly ten genes are rejected."""
+    try:
+        decode(np.zeros(CHROMOSOME_LENGTH - 1, dtype=np.float64))
+        raise AssertionError("expected ValueError for a short chromosome")
+    except ValueError:
+        pass
+
+
+def test_random_chromosome_always_decodes_within_bounds() -> None:
+    """Checks that sampled chromosomes decode to configurations inside the documented ranges."""
+    rng = np.random.default_rng(0)
+    for _ in range(50):
+        config = decode(random_chromosome(rng))
+        assert 1 <= len(config.hidden_sizes) <= 4
+        assert all(16 <= size <= 256 for size in config.hidden_sizes)
+        assert config.activation in ACTIVATIONS
+        assert 1e-4 <= config.learning_rate <= 1e-1
+        assert 1e-6 <= config.weight_decay <= 1e-2
+        assert 0.0 <= config.dropout <= 0.5
+        assert 16 <= config.batch_size <= 256
+
+
+def test_mixed_mutation_is_pure_and_clamps_to_bounds() -> None:
+    """Checks that mutation copies the chromosome, respects the bounds and leaves the input intact."""
+    rng = np.random.default_rng(1)
+    chromosome = random_chromosome(rng)
+    original = chromosome.copy()
+    mutated = mixed_mutation(chromosome, rng, rate=1.0)
+    assert np.array_equal(chromosome, original)
+    assert mutated.shape == (CHROMOSOME_LENGTH,)
+    assert np.all(mutated >= GENE_LOW) and np.all(mutated <= GENE_HIGH)
+    untouched = mixed_mutation(chromosome, rng, rate=0.0)
+    assert np.array_equal(untouched, original)
+
+
+def test_mixed_mutation_always_replaces_the_activation_gene() -> None:
+    """Checks that a full-rate mutation never keeps the same activation index."""
+    rng = np.random.default_rng(2)
+    chromosome = np.array([2.0, 6.0, 5.0, 4.0, 4.0, 1.0, -3.0, -4.0, 0.2, 6.0], dtype=np.float64)
+    mutated = mixed_mutation(chromosome, rng, rate=1.0)
+    assert mutated[ACTIVATION_GENE] != chromosome[ACTIVATION_GENE]
+    decode(mutated)
+
+
+def test_uniform_crossover_children_stay_decodable() -> None:
+    """Checks that recombining two valid chromosomes keeps both children inside the space."""
+    rng = np.random.default_rng(3)
+    parent_a = random_chromosome(rng)
+    parent_b = random_chromosome(rng)
+    child_a, child_b = uniform_crossover(parent_a, parent_b, rng)
+    decode(child_a)
+    decode(child_b)
+
+
 def main() -> None:
     """Runs every phase 3 test and reports the result."""
     test_read_letter_table_maps_letters_to_indices()
@@ -250,6 +329,12 @@ def main() -> None:
     test_build_mlp_rejects_unknown_activation()
     test_train_and_evaluate_returns_bounded_accuracy()
     test_train_and_evaluate_is_deterministic_per_seed()
+    test_decode_reconstructs_documented_configuration()
+    test_decode_rejects_wrong_chromosome_length()
+    test_random_chromosome_always_decodes_within_bounds()
+    test_mixed_mutation_is_pure_and_clamps_to_bounds()
+    test_mixed_mutation_always_replaces_the_activation_gene()
+    test_uniform_crossover_children_stay_decodable()
     print("All phase 3 tests passed.")
 
 
