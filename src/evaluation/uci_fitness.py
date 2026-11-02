@@ -10,6 +10,7 @@ from src.genetic.hyperparams_chromosome import decode
 from src.networks.torch_mlp import MLPConfig, train_and_evaluate
 from src.uci.dataset import LetterDataset, load_letter_dataset
 from src.uci.preparation import LETTER_CLASSES
+from src.utils.seeding import draw_evaluation_seeds
 
 _WORKER_DATASET: LetterDataset | None = None
 
@@ -49,11 +50,6 @@ def evaluate_chromosome(
 ) -> float:
     """Trains the encoded configuration and returns its validation accuracy."""
     return evaluate_config(decode(chromosome), dataset, epochs, seed)
-
-
-def draw_evaluation_seeds(rng: np.random.Generator, count: int) -> NDArray[np.int64]:
-    """Draws one evaluation seed per individual before any task is dispatched."""
-    return rng.integers(1_000_000, size=count).astype(np.int64)
 
 
 def initialize_worker(data_directory: Path) -> None:

@@ -8,6 +8,7 @@ import numpy as np
 from numpy.typing import NDArray
 
 from src.networks.numpy_mlp import NumpyMLP
+from src.utils.seeding import draw_evaluation_seeds
 
 CARTPOLE_ARCHITECTURE: tuple[int, int, int] = (4, 8, 2)
 
@@ -78,11 +79,6 @@ class EvaluationTask:
     architecture: tuple[int, ...]
     episodes: int
     seed: int
-
-
-def draw_evaluation_seeds(rng: np.random.Generator, count: int) -> NDArray[np.int64]:
-    """Draws one evaluation seed per individual before any task is dispatched."""
-    return rng.integers(1_000_000, size=count).astype(np.int64)
 
 
 def evaluate_task(task: EvaluationTask) -> float:
