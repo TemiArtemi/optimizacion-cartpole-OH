@@ -2,7 +2,7 @@
 
 Fichero vivo y breve: refleja **qué está hecho** y **qué toca a continuación**. Se actualiza al cerrar cada subtarea. Los detalles técnicos no van aquí, sino en el chat y en la memoria.
 
-**Última actualización:** 2026-11-02
+**Última actualización:** 2026-11-15
 
 ---
 
@@ -20,6 +20,7 @@ Fichero vivo y breve: refleja **qué está hecho** y **qué toca a continuación
 - [x] Fase 1 (2026-10-30): motor genético desde cero (selección, elitismo, presupuesto de evaluaciones), línea base de búsqueda aleatoria, 9 tests y verificación en CartPole.
 - [x] Fase 2 (2026-10-30): evaluación paralela con *speedup* medido, utilidades de métricas y figuras, comparación de operadores y baseline REINFORCE con comparación de tres métodos bajo igual presupuesto de episodios.
 - [x] Fase 3 (2026-11-02): dataset UCI *Letter Recognition* documentado, red PyTorch, cromosoma mixto de hiperparámetros, evaluación paralela y experimento de comparación (AG, búsqueda aleatoria y configuración por defecto) verificado con `python -m experiments.phase3_check`.
+- [x] Ampliación (2026-11-15): interfaz web Streamlit de demostración (`app/`: CartPole con entrenamiento en vivo y animación; Letter con configurador y búsqueda), con pruebas propias (`python3 -m tests.app_smoke_test`).
 
 ### Decisiones de diseño (provisionales, confirmar con el equipo)
 
@@ -29,7 +30,7 @@ Fichero vivo y breve: refleja **qué está hecho** y **qué toca a continuación
 
 ### Tarea inmediata
 
-- **Fase 4:** revisión del equipo de la memoria (`memoria/sections/`, especialmente la sección 13 de uso de IA) y pulido final; decidir si se prepara la presentación opcional.
+- **Fase 4:** revisión conjunta de la memoria (`memoria/sections/`, especialmente la sección 13 de uso de IA) y de la interfaz (`app/`); pulido final y decisión sobre la presentación opcional.
 
 ---
 
