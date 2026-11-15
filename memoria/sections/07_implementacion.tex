@@ -5,6 +5,7 @@
 
 El repositorio separa por responsabilidades el dominio, la evolución y los experimentos:
 
+{\small
 \begin{itemize}
   \item \texttt{src/networks/}: \texttt{numpy\_mlp.py} (red completa en NumPy: aplanado, reconstrucción de matrices y paso hacia adelante) y \texttt{torch\_mlp.py} (configuración \texttt{MLPConfig}, construcción y bucle de entrenamiento con PyTorch).
   \item \texttt{src/genetic/}: \texttt{engine.py} (motor evolutivo), \texttt{selection.py}, \texttt{operators.py} (cruces y mutación gaussiana), \texttt{mixed\_operators.py} y \texttt{hyperparams\_chromosome.py} (codificación mixta de hiperparámetros), \texttt{random\_search.py}.
@@ -14,9 +15,11 @@ El repositorio separa por responsabilidades el dominio, la evolución y los expe
   \item \texttt{src/utils/}: métricas compartidas, gráficas en español y utilidades de semillas.
   \item \texttt{tests/} (seis baterías), \texttt{experiments/} (cinco scripts reproducibles), \texttt{results/} (figuras y logs).
 \end{itemize}
+}
 
 \subsection{Decisiones de diseño}
 
+{\small
 \begin{enumerate}
   \item \textbf{Motor desacoplado del dominio (SRP/OCP).} \texttt{run\_genetic\_algorithm} no importa ni CartPole ni PyTorch: recibe \texttt{fitness\_fn} (o un evaluador por lote \texttt{population\_fitness\_fn}), el inicializador y los operadores como llamables inyectados. El mismo motor ejecutó la función esfera en los tests, CartPole y la búsqueda de hiperparámetros sin una sola línea de cambio.
   \item \textbf{Funciones puras y semillas explícitas.} Los operadores nunca mutan sus entradas y todos los módulos de azar reciben un \texttt{rng} explícito: cada resultado es reproducible a partir de su semilla y las pruebas pueden comparar ejecuciones completas.
@@ -26,6 +29,7 @@ El repositorio separa por responsabilidades el dominio, la evolución y los expe
   \item \textbf{Determinismo completo.} Semillas en NumPy, en \texttt{torch.manual\_seed} y en el generador de barajado del \texttt{DataLoader}; \texttt{torch.set\_num\_threads(1)} evita contención de hilos entre trabajadores paralelos.
   \item \textbf{Verificación numérica del gradiente.} La retropropagación manual de REINFORCE se valida contra diferencias finitas del log-verosimilitud ponderado (tolerancia $10^{-4}$): un error de signo o de máscara ReLU saltaría inmediatamente en los tests.
 \end{enumerate}
+}
 
 \subsection{Dificultades encontradas}
 

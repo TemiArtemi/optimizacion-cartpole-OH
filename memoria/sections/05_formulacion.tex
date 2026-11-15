@@ -39,6 +39,7 @@ Continuo, no convexo y estocástico. Aunque $w$ vive en $\mathbb{R}^n$, la polí
 
 \paragraph{Variables de decisión.}
 Un cromosoma mixto $x \in \mathcal{X} \subset \mathbb{R}^{10}$ donde siete genes son enteros o categóricos y tres son continuos:
+{\small
 \begin{align}
   \ell &\in \{1,2,3,4\} \quad \text{(número de capas ocultas)}, &
   h_i &= 2^{k_i}, \ k_i \in \{4,\dots,8\} \quad \text{(anchos de capa: 16--256)}, \\
@@ -48,6 +49,7 @@ Un cromosoma mixto $x \in \mathcal{X} \subset \mathbb{R}^{10}$ donde siete genes
   p &\in [0, 0.5] \quad \text{(dropout)}, \\
   b &= 2^{m}, \ m \in \{4,\dots,8\} \quad \text{(tamaño de lote)}. &&
 \end{align}
+}
 Las tasas de aprendizaje y el weight decay se codifican en escala logarítmica porque su efecto es multiplicativo: un paso aditivo pequeño en $u$ equivale a un factor constante en $\eta$.
 
 \paragraph{Procedimiento interior (caja negra).}
