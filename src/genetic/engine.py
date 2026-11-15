@@ -45,6 +45,9 @@ class EvolutionResult:
         return np.array([entry.evaluations for entry in self.history], dtype=np.int64)
 
 
+GenerationCallback = Callable[[GenerationStats], None]
+
+
 def run_genetic_algorithm(
     *,
     fitness_fn: FitnessFunction | None = None,
@@ -58,6 +61,7 @@ def run_genetic_algorithm(
     crossover_rate: float = 0.9,
     elite_size: int = 2,
     seed: int | None = None,
+    on_generation: GenerationCallback | None = None,
 ) -> EvolutionResult:
     """Evolves a population under a fixed evaluation budget and returns the best solution."""
     if fitness_fn is None and population_fitness_fn is None:
@@ -87,15 +91,16 @@ def run_genetic_algorithm(
         if float(fitnesses[order[0]]) > best_fitness:
             best_fitness = float(fitnesses[order[0]])
             best_chromosome = population[order[0]].copy()
-        history.append(
-            GenerationStats(
-                generation=generation,
-                best_so_far=best_fitness,
-                mean=float(np.mean(fitnesses)),
-                std=float(np.std(fitnesses)),
-                evaluations=(generation + 1) * population_size,
-            )
+        stats = GenerationStats(
+            generation=generation,
+            best_so_far=best_fitness,
+            mean=float(np.mean(fitnesses)),
+            std=float(np.std(fitnesses)),
+            evaluations=(generation + 1) * population_size,
         )
+        history.append(stats)
+        if on_generation is not None:
+            on_generation(stats)
         elites = population[order[:elite_size]]
         parent_indices = selection_fn(fitnesses, rng, population_size - elite_size)
         children: list[NDArray[np.float64]] = []

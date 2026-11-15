@@ -2,7 +2,7 @@ import functools
 
 import numpy as np
 
-from src.genetic.engine import run_genetic_algorithm
+from src.genetic.engine import GenerationStats, run_genetic_algorithm
 from src.genetic.operators import (
     blx_alpha_crossover,
     gaussian_mutation,
@@ -278,6 +278,26 @@ def test_blx_alpha_stays_within_widened_bounds() -> None:
         pass
 
 
+def test_engine_reports_each_generation_to_the_callback() -> None:
+    """Checks that the optional callback receives every recorded generation in order."""
+    received: list[GenerationStats] = []
+    result = run_genetic_algorithm(
+        fitness_fn=sphere_fitness,
+        init_fn=sphere_init,
+        selection_fn=tournament_selection,
+        crossover_fn=one_point_crossover,
+        mutation_fn=sphere_mutation(),
+        population_size=30,
+        max_evaluations=150,
+        seed=3,
+        on_generation=received.append,
+    )
+    assert [stats.generation for stats in received] == list(range(5))
+    assert [stats.best_so_far for stats in received] == [
+        entry.best_so_far for entry in result.history
+    ]
+
+
 def main() -> None:
     """Runs every phase 1 test and reports the result."""
     test_tournament_returns_fittest_when_sampling_whole_field()
@@ -293,6 +313,7 @@ def main() -> None:
     test_random_search_respects_budget()
     test_random_search_matches_between_individual_and_population_scoring()
     test_result_curves_expose_history_as_arrays()
+    test_engine_reports_each_generation_to_the_callback()
     test_genetic_algorithm_beats_random_search_under_same_budget()
     print("All phase 1 tests passed.")
 
