@@ -112,6 +112,12 @@ def build_animation(states: np.ndarray, title: str) -> go.Figure:
                 name=str(step),
                 data=[
                     go.Scatter(
+                        x=[pivot_x, pivot_x],
+                        y=[pivot_y, pivot_y + 0.75],
+                        mode="lines",
+                        line=dict(color="gray", width=2, dash="dash"),
+                    ),
+                    go.Scatter(
                         x=[pivot_x],
                         y=[0.08],
                         mode="markers",
@@ -152,7 +158,7 @@ def build_animation(states: np.ndarray, title: str) -> go.Figure:
                         args=[
                             None,
                             {
-                                "frame": {"duration": 40, "redraw": True},
+                                "frame": {"duration": 25, "redraw": True},
                                 "fromcurrent": True,
                             },
                         ],
@@ -242,7 +248,14 @@ def show_training_results() -> None:
     metric_b.metric("Evaluaciones hasta 500", "—" if target is None else f"{target:,}".replace(",", "."))
     metric_c.metric("Tiempo de búsqueda", f"{stored['seconds']:.1f} s")
     curve_frame = pd.DataFrame({"Mejor hasta la fecha": best_curve}, index=evaluations)
-    st.line_chart(curve_frame, height=260)
+    axis_label = "Episodios jugados" if stored["method"] == METHOD_REINFORCE else "Evaluaciones"
+    st.line_chart(curve_frame, height=260, x_label=axis_label, y_label="Mejor fitness hasta la fecha")
+    st.caption(
+        "La curva muestra el mejor valor visto hasta cada punto: nunca baja (gracias al elitismo) "
+        "y se queda plana al alcanzar 500, la puntuación máxima de CartPole (500 pasos × 1 punto). "
+        "Con esta red, el algoritmo genético resuelve la tarea en torno a 300–500 evaluaciones "
+        "—la memoria reporta 470 de media—, por lo que una curva que sube rápido y se estanca es el comportamiento esperado."
+    )
     if st.button("💾 Guardar mejor controlador"):
         path = save_controller(
             stored["best_chromosome"],
@@ -257,6 +270,11 @@ def render_animation_section() -> None:
     """Shows the animation controls for the current or any saved controller."""
     st.divider()
     st.subheader("🎬 Ver el controlador en acción")
+    st.caption(
+        "El episodio termina en cuanto el palo se inclina más de 12° o el carrito sale de la vía "
+        "(reglas del juego), por lo que nunca verás una caída completa: la línea discontinua gris "
+        "es la vertical de referencia para apreciar la inclinación del palo."
+    )
     stored = st.session_state.get("cartpole_result")
     animation_column, saved_column = st.columns(2)
     with animation_column:

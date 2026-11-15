@@ -40,8 +40,8 @@ def test_build_animation_produces_one_frame_per_step() -> None:
     )
     figure = build_animation(states, "prueba")
     assert len(figure.frames) == 3
-    assert len(figure.data) == 2
-    assert len(figure.frames[1].data) == 2
+    assert len(figure.data) == 3
+    assert len(figure.frames[1].data) == 3
 
 
 def test_play_controller_episode_returns_states_and_score() -> None:
