@@ -136,7 +136,7 @@ def render_manual_configurator(dataset: LetterDataset, epochs: int) -> None:
             options=list(WIDTH_OPTIONS),
             value=64,
         )
-        train_seed = st.number_input("Semilla de entrenamiento", 0, 99999, 1)
+        train_seed = st.number_input("Semilla de entrenamiento", 0, 99999, 1, key="letter_manual_seed")
         width_exponents = tuple(
             int(round(np.log2(width))) for width in widths + [16] * (4 - len(widths))
         )
@@ -193,11 +193,11 @@ def render_search_results(stored: dict[str, object]) -> None:
 
 def render_search(dataset: LetterDataset) -> None:
     """Renders the automatic search controls and runs the selected method."""
-    epochs = st.slider("Épocas de entrenamiento por evaluación", 5, 20, 10, 5)
+    epochs = st.slider("Épocas de entrenamiento por evaluación", 5, 20, 10, 5, key="letter_epochs_slider")
     st.session_state["letter_epochs"] = epochs
-    method = st.selectbox("Método de búsqueda", METHODS)
-    budget = st.slider("Presupuesto (evaluaciones)", 40, 240, 60, 20)
-    run_seed = st.number_input("Semilla de ejecución", 0, 9999, 0)
+    method = st.selectbox("Método de búsqueda", METHODS, key="letter_search_method")
+    budget = st.slider("Presupuesto (evaluaciones)", 40, 240, 60, 20, key="letter_budget")
+    run_seed = st.number_input("Semilla de ejecución", 0, 9999, 0, key="letter_search_seed")
     st.caption(
         f"Cada evaluación entrena una red {epochs} épocas en CPU (~unos segundos). "
         "El experimento oficial de la memoria usa 20 épocas y 240 evaluaciones con 5 semillas."

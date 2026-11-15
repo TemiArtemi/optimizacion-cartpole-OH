@@ -278,7 +278,7 @@ def render_animation_section() -> None:
     stored = st.session_state.get("cartpole_result")
     animation_column, saved_column = st.columns(2)
     with animation_column:
-        episode_seed = st.number_input("Semilla del episodio", 0, 99999, 42)
+        episode_seed = st.number_input("Semilla del episodio", 0, 99999, 42, key="cartpole_episode_seed")
         if stored is not None and st.button("Reproducir el controlador entrenado"):
             states, score = play_controller_episode(stored["best_chromosome"], int(episode_seed))
             figure = build_animation(
@@ -313,9 +313,9 @@ def render_cartpole_tab() -> None:
     )
     controls_column, results_column = st.columns([1, 2], gap="large")
     with controls_column:
-        method = st.selectbox("Método de búsqueda", METHODS)
-        budget = st.slider("Presupuesto (evaluaciones)", 500, 3000, 1000, 250)
-        run_seed = st.number_input("Semilla de ejecución", 0, 9999, 0)
+        method = st.selectbox("Método de búsqueda", METHODS, key="cartpole_method")
+        budget = st.slider("Presupuesto (evaluaciones)", 500, 3000, 1000, 250, key="cartpole_budget")
+        run_seed = st.number_input("Semilla de ejecución", 0, 9999, 0, key="cartpole_search_seed")
         if method == METHOD_REINFORCE:
             st.caption(f"REINFORCE entrena {budget * EPISODES_PER_EVALUATION:,} episodios con esta misma semilla.".replace(",", "."))
         else:
