@@ -88,6 +88,21 @@ Los tests de Fase 3 que dependen del dataset omiten con un mensaje explícito si
 
 Cada experimento guarda su figura en `results/figures/` y sus datos en bruto en `results/logs/`. La reproducibilidad por semillas es estricta **en la misma máquina**: los experimentos puros de NumPy (Fases 1 y 2) reproducen incluso bytes idénticos entre máquinas, mientras que el entrenamiento con PyTorch de la Fase 3 puede variar en el cuarto decimal entre CPUs distintas (los productos matriciales usan rutinas BLAS dependientes del hardware), sin alterar las conclusiones. Las duraciones registradas en los logs son tiempos de pared dependientes de la máquina (`parallel_speedup` es, por naturaleza, un experimento de tiempos).
 
+## Interfaz de demostración (Streamlit)
+
+Para la presentación opcional existe una interfaz web local que **conduce el código de `src/` sin modificarlo** (no forma parte de los entregables científicos ni afecta a los resultados):
+
+```bash
+python3 -m streamlit run app/main.py
+```
+
+Se ejecuta desde la raíz del repositorio y se abre en el navegador (en WSL, `http://localhost:8501`):
+
+- **Pestaña CartPole-v1:** entrenamiento del AG con curva de convergencia en vivo (también búsqueda aleatoria y REINFORCE), animación del controlador aprendido o de uno guardado, y guardado de controladores en `app/controllers/` para reproducirlos al instante.
+- **Pestaña Letter Recognition:** configurador manual de los 10 hiperparámetros (el mismo `decode` del proyecto) con entrenamiento en segundos, y búsqueda automática (AG o aleatoria) con curva de exactitud, mejor configuración decodificada e historial de pruebas.
+
+La interfaz tiene sus propias pruebas (`python3 -m tests.app_smoke_test`), incluida la renderización completa de la aplicación con `streamlit.testing` sin necesidad de navegador.
+
 ## Plan de trabajo
 
 El estado actual del proyecto y las tareas pendientes se mantienen en [`PLAN.md`](PLAN.md).
