@@ -285,7 +285,7 @@ def render_animation_section() -> None:
                 states,
                 f"Controlador entrenado · pasos sobrevividos: {score}",
             )
-            st.plotly_chart(figure, use_container_width=True, config={"displayModeBar": False})
+            st.plotly_chart(figure, width="stretch", config={"displayModeBar": False})
         elif stored is None:
             st.caption("Entrena un controlador o carga uno guardado para verlo en movimiento.")
     with saved_column:
@@ -301,7 +301,7 @@ def render_animation_section() -> None:
                 states,
                 f"{metadata['method']} · guardado con fitness {metadata['fitness']:.1f} · pasos: {score}",
             )
-            st.plotly_chart(figure, use_container_width=True, config={"displayModeBar": False})
+            st.plotly_chart(figure, width="stretch", config={"displayModeBar": False})
 
 
 def render_cartpole_tab() -> None:
@@ -320,7 +320,7 @@ def render_cartpole_tab() -> None:
             st.caption(f"REINFORCE entrena {budget * EPISODES_PER_EVALUATION:,} episodios con esta misma semilla.".replace(",", "."))
         else:
             st.caption(f"Se evaluarán {budget:,} candidatos con {EPISODES_PER_EVALUATION} episodios cada uno.".replace(",", "."))
-        train_clicked = st.button("Entrenar", type="primary", use_container_width=True)
+        train_clicked = st.button("Entrenar", type="primary", width="stretch")
     with results_column:
         if train_clicked:
             st.session_state["cartpole_run_seed"] = int(run_seed)
