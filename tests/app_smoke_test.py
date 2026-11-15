@@ -10,6 +10,8 @@ from app.cartpole_view import (
     train_random,
     train_reinforce,
 )
+from app.letter_view import build_chromosome, config_summary
+from src.genetic.hyperparams_chromosome import DEFAULT_CONFIG, decode
 from src.networks.numpy_mlp import random_chromosome
 from src.environments.cartpole_eval import CARTPOLE_ARCHITECTURE
 
@@ -68,12 +70,35 @@ def test_training_functions_run_with_a_tiny_budget() -> None:
     assert reinforce_seconds > 0.0
 
 
+def test_build_chromosome_decodes_to_chosen_configuration() -> None:
+    """Checks that the interface values become the exact decoded network configuration."""
+    chromosome = build_chromosome(2, (6, 5, 4, 4), 1, -3, -4, 0.2, 6)
+    config = decode(chromosome)
+    assert config.hidden_sizes == (64, 32)
+    assert config.activation == "tanh"
+    assert np.isclose(config.learning_rate, 1e-3)
+    assert np.isclose(config.weight_decay, 1e-4)
+    assert config.dropout == 0.2
+    assert config.batch_size == 64
+
+
+def test_config_summary_reports_spanish_labels() -> None:
+    """Checks that the configuration table shows readable Spanish labels."""
+    summary = config_summary(DEFAULT_CONFIG)
+    assert summary["Capas ocultas"] == 2
+    assert summary["Anchos"] == "64 / 64"
+    assert summary["Activación"] == "relu"
+    assert summary["Tamaño de lote"] == 64
+
+
 def main() -> None:
     """Runs every app smoke test and reports the result."""
     test_save_load_controller_roundtrip()
     test_build_animation_produces_one_frame_per_step()
     test_play_controller_episode_returns_states_and_score()
     test_training_functions_run_with_a_tiny_budget()
+    test_build_chromosome_decodes_to_chosen_configuration()
+    test_config_summary_reports_spanish_labels()
     print("All app smoke tests passed.")
 
 
