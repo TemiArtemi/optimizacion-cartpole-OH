@@ -1,4 +1,7 @@
+from pathlib import Path
+
 import numpy as np
+from streamlit.testing.v1 import AppTest
 
 from app.cartpole_view import (
     build_animation,
@@ -91,6 +94,17 @@ def test_config_summary_reports_spanish_labels() -> None:
     assert summary["Tamaño de lote"] == 64
 
 
+def test_application_renders_without_exceptions() -> None:
+    """Checks that the whole interface builds every tab without rendering errors."""
+    application = AppTest.from_file(
+        str(Path(__file__).resolve().parents[1] / "app" / "main.py"),
+        default_timeout=60,
+    )
+    application.run()
+    assert not application.exception
+    assert len(application.tabs) == 4
+
+
 def main() -> None:
     """Runs every app smoke test and reports the result."""
     test_save_load_controller_roundtrip()
@@ -99,6 +113,7 @@ def main() -> None:
     test_training_functions_run_with_a_tiny_budget()
     test_build_chromosome_decodes_to_chosen_configuration()
     test_config_summary_reports_spanish_labels()
+    test_application_renders_without_exceptions()
     print("All app smoke tests passed.")
 
 
