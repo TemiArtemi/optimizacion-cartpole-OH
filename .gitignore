@@ -7,3 +7,4 @@ venv/
 data/raw/
 data/letter/
 results/logs/phase3_console*.log
+app_run*.log
